@@ -17,7 +17,7 @@ sudo ./01_sistema_niri.sh 2>&1 | tee -a ~/fedora_sistema_completo.log
 
 Instalacion minima kde fedora everything
 
-curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/refs/heads/main/03_kde.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/03_kde.sh | sudo bash
 
 Tambien sirve:
 
