@@ -80,8 +80,8 @@ echo -e "${ANUNCIAR}=== 4. Instalando GNOME (Versión Minimalista) ===${NC}"
     gnome-shell gnome-session gnome-control-center gnome-settings-daemon \
     gdm gnome-terminal nautilus gnome-text-editor gnome-calculator \
     gnome-screenshot gnome-system-monitor gnome-logs \
-    gnome-software gnome-tweaks \
-    xdg-desktop-portal-gnome xdg-desktop-portal-gtk packagekit \
+    gnome-tweaks \
+    xdg-desktop-portal-gnome xdg-desktop-portal-gtk \
     mutter wayland-protocols-devel pipewire pipewire-pulse wireplumber \
     gvfs gvfs-mtp gvfs-archive
 
@@ -90,6 +90,23 @@ systemctl enable gdm.service
 systemctl --user --machine="${REAL_USER}@.host" enable pipewire pipewire-pulse wireplumber xdg-desktop-portal-gnome
 
 log_status $? "GNOME Minimal"
+
+# ==============================================================================
+# 4b. ELIMINACIÓN DE GNOME-SOFTWARE Y PACKAGEKIT
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 4b. Eliminando gnome-software y PackageKit ===${NC}"
+# Desinstalar gnome-software y todos sus componentes
+/usr/bin/dnf remove -y gnome-software gnome-software-rpm-ostree packagekit packagekit-gtk3-module PackageKit-command-not-found
+
+# Limpiar dependencias huérfanas
+/usr/bin/dnf autoremove -y
+
+# Limpiar caché residual
+rm -rf "$USER_HOME/.local/share/gnome-software"
+rm -rf "$USER_HOME/.cache/gnome-software"
+rm -rf /var/cache/PackageKit
+
+log_status $? "Eliminación de gnome-software y PackageKit"
 
 # ==============================================================================
 # 5. HERRAMIENTAS BÁSICAS Y UTILIDADES
@@ -225,87 +242,44 @@ echo -e "\n[Estado de zRAMctl]:" >> "$LOG_FILE"
 # Asegurar que el sistema arranque en modo gráfico (GNOME)
 systemctl set-default graphical.target
 
+echo "=== Optimizando GNOME 50 para hardware limitado ==="
+
+# Desactivar animaciones
+gsettings set org.gnome.desktop.interface enable-animations false
+
+# Desactivar Tracker
+systemctl --user mask tracker-extract-3.service
+systemctl --user mask tracker-miner-fs-3.service
+systemctl --user mask tracker-writeback-3.service
+tracker3 reset -s -r 2>/dev/null
+
+# Desactivar servicios innecesarios
+systemctl --user mask evolution-addressbook-factory.service 2>/dev/null
+systemctl --user mask evolution-calendar-factory.service 2>/dev/null
+systemctl --user mask evolution-source-registry.service 2>/dev/null
+sudo systemctl disable colord.service 2>/dev/null
+sudo systemctl disable packagekit.service 2>/dev/null
+
+# Optimizaciones de Mutter
+gsettings set org.gnome.mutter attach-modal-dialogs false
+gsettings set org.gnome.desktop.interface text-scaling-factor 1.0
+
+# Tema ligero
+gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'
+gsettings set org.gnome.desktop.interface icon-theme 'Adwaita'
+
+echo "✅ Optimizaciones aplicadas. Reinicia la sesión para que surtan efecto."
+
 # ----------------------------------------------------------------------
 echo "--------------------------------------------" >> "$LOG_FILE"
 echo "Proceso finalizado por completo con éxito." >> "$LOG_FILE"
 /usr/bin/chown $REAL_USER:$REAL_USER "$LOG_FILE"
 
-# Función para limpiar el buffer de stdin (evita lecturas fantasma)
-flush_stdin() {
-    while read -t 0.1 -r; do
-        :
-    done
-    # Limpiar también con stty si es posible
-    stty flush 2>/dev/null || true
-}
-
 echo -e "${VERDE}==============================================================================${NC}"
 echo -e "${VERDE} ¡PROCESO COMPLETADO! Todo se ha configurado de manera definitiva.            ${NC}"
+echo -e "${VERDE} El equipo se reiniciará automáticamente en 30 segundos...                     ${NC}"
+echo -e "${VERDE} Al volver, cargará GDM para que inicies sesión en GNOME.                      ${NC}"
 echo -e "${VERDE} Revisa el log en: $LOG_FILE ${NC}"
 echo -e "${VERDE}==============================================================================${NC}"
-echo ""
-echo -e "${ANUNCIAR}¿Qué deseas hacer ahora?${NC}"
-echo "  1) Reiniciar el sistema ahora"
-echo "  2) Ver el reporte de instalación (log)"
-echo "  3) Salir sin reiniciar (reinicio manual después)"
-echo ""
-
-# Bucle para obtener una opción válida del primer menú
-while true; do
-    flush_stdin
-    read -p "Selecciona una opción [1/2/3]: " OPCION
-    case "$OPCION" in
-        1)
-            echo ""
-            echo -e "${VERDE}Reiniciando el sistema en 5 segundos...${NC}"
-            sleep 5
-            reboot
-            break
-            ;;
-        2)
-            echo ""
-            echo -e "${ANUNCIAR}=== Mostrando contenido del log ===${NC}"
-            less "$LOG_FILE"
-            
-            # LIMPIAR BUFFER AGRESIVAMENTE DESPUÉS DE LESS
-            flush_stdin
-            sleep 0.5
-            flush_stdin
-            
-            echo ""
-            echo -e "${ANUNCIAR}Has terminado de revisar el log.${NC}"
-            echo ""
-            
-            # SEGUNDO MENÚ CON BUCLE ESTRICTO
-            while true; do
-                flush_stdin
-                read -p "¿Reiniciar ahora? [s/n]: " RESPUESTA
-                case "$RESPUESTA" in
-                    [sS]|[sS][iI])
-                        echo ""
-                        echo -e "${VERDE}Reiniciando el sistema en 5 segundos...${NC}"
-                        sleep 5
-                        reboot
-                        break 2
-                        ;;
-                    [nN]|[nN][oO])
-                        echo ""
-                        echo -e "${VERDE}Saliendo sin reiniciar. Puedes reiniciar manualmente con: sudo reboot${NC}"
-                        exit 0
-                        ;;
-                    *)
-                        echo -e "${ROJO}Opción no válida. Por favor escribe 's' o 'n'.${NC}"
-                        ;;
-                esac
-            done
-            ;;
-        3)
-            echo ""
-            echo -e "${VERDE}Saliendo sin reiniciar. Puedes reiniciar manualmente con: sudo reboot${NC}"
-            exit 0
-            ;;
-        *)
-            echo -e "${ROJO}Opción no válida. Por favor ingresa 1, 2 o 3.${NC}"
-            ;;
-    esac
-done
+sleep 30
+reboot
