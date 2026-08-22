@@ -247,13 +247,17 @@ case "$OPCION" in
         echo ""
         echo -e "${ANUNCIAR}=== Mostrando contenido del log ===${NC}"
         less "$LOG_FILE"
+        
+        # LIMPIAR EL BUFFER DE ENTRADA DESPUÉS DE LESS
+        read -p "$(echo -e ${VERDE})Presiona ENTER para continuar...$(echo -e ${NC})"
         echo ""
-        # NUEVO MENÚ DESPUÉS DE VER EL LOG
+        
+        # MENÚ DESPUÉS DE VER EL LOG
         echo -e "${ANUNCIAR}¿Qué deseas hacer ahora?${NC}"
         echo "  1) Reiniciar el sistema ahora"
         echo "  2) Salir sin reiniciar"
         echo ""
-        read -p "Selecciona una opción [1/2] (por defecto 1): " OPCION2
+        read -p "Selecciona una opción [1/2]: " OPCION2
         
         case "$OPCION2" in
             2)
@@ -261,10 +265,16 @@ case "$OPCION" in
                 echo -e "${VERDE}Saliendo sin reiniciar. Puedes reiniciar manualmente cuando quieras con: sudo reboot${NC}"
                 exit 0
                 ;;
+            1|"")
+                echo ""
+                echo -e "${VERDE}Reiniciando el sistema en 5 segundos...${NC}"
+                sleep 5
+                reboot
+                ;;
             *)
                 echo ""
-                echo -e "${VERDE}Reiniciando el sistema en 30 segundos...${NC}"
-                sleep 30
+                echo -e "${ROJO}Opción no válida. Reiniciando en 5 segundos...${NC}"
+                sleep 5
                 reboot
                 ;;
         esac
@@ -274,9 +284,15 @@ case "$OPCION" in
         echo -e "${VERDE}Saliendo sin reiniciar. Puedes reiniciar manualmente cuando quieras con: sudo reboot${NC}"
         exit 0
         ;;
-    *)
+    1|"")
         echo ""
         echo -e "${VERDE}Reiniciando el sistema en 5 segundos...${NC}"
+        sleep 5
+        reboot
+        ;;
+    *)
+        echo ""
+        echo -e "${ROJO}Opción no válida. Reiniciando en 5 segundos...${NC}"
         sleep 5
         reboot
         ;;
