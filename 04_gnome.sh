@@ -267,14 +267,14 @@ case "$OPCION" in
                 ;;
             1|"")
                 echo ""
-                echo -e "${VERDE}Reiniciando el sistema en 5 segundos...${NC}"
-                sleep 5
+                echo -e "${VERDE}Reiniciando el sistema en 30 segundos...${NC}"
+                sleep 30
                 reboot
                 ;;
             *)
                 echo ""
-                echo -e "${ROJO}Opción no válida. Reiniciando en 5 segundos...${NC}"
-                sleep 5
+                echo -e "${ROJO}Opción no válida. Reiniciando en 30 segundos...${NC}"
+                sleep 30
                 reboot
                 ;;
         esac
@@ -286,14 +286,14 @@ case "$OPCION" in
         ;;
     1|"")
         echo ""
-        echo -e "${VERDE}Reiniciando el sistema en 5 segundos...${NC}"
-        sleep 5
+        echo -e "${VERDE}Reiniciando el sistema en 30 segundos...${NC}"
+        sleep 30
         reboot
         ;;
     *)
         echo ""
-        echo -e "${ROJO}Opción no válida. Reiniciando en 5 segundos...${NC}"
-        sleep 5
+        echo -e "${ROJO}Opción no válida. Reiniciando en 30 segundos...${NC}"
+        sleep 30
         reboot
         ;;
 esac
