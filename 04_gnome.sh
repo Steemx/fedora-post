@@ -248,10 +248,26 @@ case "$OPCION" in
         echo -e "${ANUNCIAR}=== Mostrando contenido del log ===${NC}"
         less "$LOG_FILE"
         echo ""
-        read -p "Presiona ENTER para reiniciar, o Ctrl+C para salir sin reiniciar..."
-        echo -e "${VERDE}Reiniciando el sistema...${NC}"
-        sleep 2
-        reboot
+        # NUEVO MENÚ DESPUÉS DE VER EL LOG
+        echo -e "${ANUNCIAR}¿Qué deseas hacer ahora?${NC}"
+        echo "  1) Reiniciar el sistema ahora"
+        echo "  2) Salir sin reiniciar"
+        echo ""
+        read -p "Selecciona una opción [1/2] (por defecto 1): " OPCION2
+        
+        case "$OPCION2" in
+            2)
+                echo ""
+                echo -e "${VERDE}Saliendo sin reiniciar. Puedes reiniciar manualmente cuando quieras con: sudo reboot${NC}"
+                exit 0
+                ;;
+            *)
+                echo ""
+                echo -e "${VERDE}Reiniciando el sistema en 5 segundos...${NC}"
+                sleep 5
+                reboot
+                ;;
+        esac
         ;;
     3)
         echo ""
