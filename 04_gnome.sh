@@ -232,9 +232,36 @@ echo "Proceso finalizado por completo con éxito." >> "$LOG_FILE"
 
 echo -e "${VERDE}==============================================================================${NC}"
 echo -e "${VERDE} ¡PROCESO COMPLETADO! Todo se ha configurado de manera definitiva.            ${NC}"
-echo -e "${VERDE} El equipo se reiniciará automáticamente en 10 segundos...                     ${NC}"
-echo -e "${VERDE} Al volver, cargará GDM para que inicies sesión en GNOME.                      ${NC}"
 echo -e "${VERDE} Revisa el log en: $LOG_FILE ${NC}"
 echo -e "${VERDE}==============================================================================${NC}"
-sleep 10
-reboot
+echo ""
+echo -e "${ANUNCIAR}¿Qué deseas hacer ahora?${NC}"
+echo "  1) Reiniciar el sistema ahora"
+echo "  2) Ver el reporte de instalación (log)"
+echo "  3) Salir sin reiniciar (reinicio manual después)"
+echo ""
+read -p "Selecciona una opción [1/2/3] (por defecto 1): " OPCION
+
+case "$OPCION" in
+    2)
+        echo ""
+        echo -e "${ANUNCIAR}=== Mostrando contenido del log ===${NC}"
+        less "$LOG_FILE"
+        echo ""
+        read -p "Presiona ENTER para reiniciar, o Ctrl+C para salir sin reiniciar..."
+        echo -e "${VERDE}Reiniciando el sistema...${NC}"
+        sleep 2
+        reboot
+        ;;
+    3)
+        echo ""
+        echo -e "${VERDE}Saliendo sin reiniciar. Puedes reiniciar manualmente cuando quieras con: sudo reboot${NC}"
+        exit 0
+        ;;
+    *)
+        echo ""
+        echo -e "${VERDE}Reiniciando el sistema en 5 segundos...${NC}"
+        sleep 5
+        reboot
+        ;;
+esac
