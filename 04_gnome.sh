@@ -230,6 +230,15 @@ echo "--------------------------------------------" >> "$LOG_FILE"
 echo "Proceso finalizado por completo con éxito." >> "$LOG_FILE"
 /usr/bin/chown $REAL_USER:$REAL_USER "$LOG_FILE"
 
+# Función para limpiar el buffer de stdin (evita lecturas fantasma)
+flush_stdin() {
+    while read -t 0.1 -r; do
+        :
+    done
+    # Limpiar también con stty si es posible
+    stty flush 2>/dev/null || true
+}
+
 echo -e "${VERDE}==============================================================================${NC}"
 echo -e "${VERDE} ¡PROCESO COMPLETADO! Todo se ha configurado de manera definitiva.            ${NC}"
 echo -e "${VERDE} Revisa el log en: $LOG_FILE ${NC}"
@@ -240,60 +249,63 @@ echo "  1) Reiniciar el sistema ahora"
 echo "  2) Ver el reporte de instalación (log)"
 echo "  3) Salir sin reiniciar (reinicio manual después)"
 echo ""
-read -p "Selecciona una opción [1/2/3] (por defecto 1): " OPCION
 
-case "$OPCION" in
-    2)
-        echo ""
-        echo -e "${ANUNCIAR}=== Mostrando contenido del log ===${NC}"
-        less "$LOG_FILE"
-        
-        # LIMPIAR EL BUFFER DE ENTRADA DESPUÉS DE LESS
-        read -p "$(echo -e ${VERDE})Presiona ENTER para continuar...$(echo -e ${NC})"
-        echo ""
-        
-        # MENÚ DESPUÉS DE VER EL LOG
-        echo -e "${ANUNCIAR}¿Qué deseas hacer ahora?${NC}"
-        echo "  1) Reiniciar el sistema ahora"
-        echo "  2) Salir sin reiniciar"
-        echo ""
-        read -p "Selecciona una opción [1/2]: " OPCION2
-        
-        case "$OPCION2" in
-            2)
-                echo ""
-                echo -e "${VERDE}Saliendo sin reiniciar. Puedes reiniciar manualmente cuando quieras con: sudo reboot${NC}"
-                exit 0
-                ;;
-            1|"")
-                echo ""
-                echo -e "${VERDE}Reiniciando el sistema en 30 segundos...${NC}"
-                sleep 30
-                reboot
-                ;;
-            *)
-                echo ""
-                echo -e "${ROJO}Opción no válida. Reiniciando en 30 segundos...${NC}"
-                sleep 30
-                reboot
-                ;;
-        esac
-        ;;
-    3)
-        echo ""
-        echo -e "${VERDE}Saliendo sin reiniciar. Puedes reiniciar manualmente cuando quieras con: sudo reboot${NC}"
-        exit 0
-        ;;
-    1|"")
-        echo ""
-        echo -e "${VERDE}Reiniciando el sistema en 30 segundos...${NC}"
-        sleep 30
-        reboot
-        ;;
-    *)
-        echo ""
-        echo -e "${ROJO}Opción no válida. Reiniciando en 30 segundos...${NC}"
-        sleep 30
-        reboot
-        ;;
-esac
+# Bucle para obtener una opción válida del primer menú
+while true; do
+    flush_stdin
+    read -p "Selecciona una opción [1/2/3]: " OPCION
+    case "$OPCION" in
+        1)
+            echo ""
+            echo -e "${VERDE}Reiniciando el sistema en 5 segundos...${NC}"
+            sleep 5
+            reboot
+            break
+            ;;
+        2)
+            echo ""
+            echo -e "${ANUNCIAR}=== Mostrando contenido del log ===${NC}"
+            less "$LOG_FILE"
+            
+            # LIMPIAR BUFFER AGRESIVAMENTE DESPUÉS DE LESS
+            flush_stdin
+            sleep 0.5
+            flush_stdin
+            
+            echo ""
+            echo -e "${ANUNCIAR}Has terminado de revisar el log.${NC}"
+            echo ""
+            
+            # SEGUNDO MENÚ CON BUCLE ESTRICTO
+            while true; do
+                flush_stdin
+                read -p "¿Reiniciar ahora? [s/n]: " RESPUESTA
+                case "$RESPUESTA" in
+                    [sS]|[sS][iI])
+                        echo ""
+                        echo -e "${VERDE}Reiniciando el sistema en 5 segundos...${NC}"
+                        sleep 5
+                        reboot
+                        break 2
+                        ;;
+                    [nN]|[nN][oO])
+                        echo ""
+                        echo -e "${VERDE}Saliendo sin reiniciar. Puedes reiniciar manualmente con: sudo reboot${NC}"
+                        exit 0
+                        ;;
+                    *)
+                        echo -e "${ROJO}Opción no válida. Por favor escribe 's' o 'n'.${NC}"
+                        ;;
+                esac
+            done
+            ;;
+        3)
+            echo ""
+            echo -e "${VERDE}Saliendo sin reiniciar. Puedes reiniciar manualmente con: sudo reboot${NC}"
+            exit 0
+            ;;
+        *)
+            echo -e "${ROJO}Opción no válida. Por favor ingresa 1, 2 o 3.${NC}"
+            ;;
+    esac
+done
