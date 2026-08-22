@@ -64,6 +64,13 @@ https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E 
 /usr/bin/flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 rpm --import https://packages.microsoft.com/keys/microsoft.asc
 /usr/bin/dnf -y config-manager addrepo --from-repofile=https://packages.microsoft.com/yumrepos/edge/config.repo
+printf '%s\n' \
+'[microsoft-edge]' \
+'name=microsoft-edge' \
+'baseurl=https://packages.microsoft.com/yumrepos/edge-stable' \
+'enabled=1' \
+'gpgcheck=1' \
+'gpgkey=https://packages.microsoft.com/keys/microsoft.asc' | sudo tee /etc/yum.repos.d/microsoft-edge.repo > /dev/null
 curl -fsSL https://tailscale.com/install.sh | sh
 log_status $? "Repositorios RPM Fusion y Flathub y otros"
 
@@ -278,14 +285,24 @@ gsettings set org.gnome.desktop.interface icon-theme 'Adwaita'
 echo "✅ Optimizaciones aplicadas. Reinicia la sesión para que surtan efecto."
 log_status $? "Optimizacion"
 
+# ==============================================================================
+# 5b. ALIAS ÚTILES PARA EL USUARIO
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 13. Configurando alias útiles ===${NC}"
 
+# Alias para actualizar todo el sistema
+if ! grep -q "alias update=" "$USER_HOME/.bashrc" 2>/dev/null; then
+    echo "" >> "$USER_HOME/.bashrc"
+    echo "# Alias para actualizar sistema y flatpaks" >> "$USER_HOME/.bashrc"
+    echo "alias update='sudo dnf update -y && flatpak update -y'" >> "$USER_HOME/.bashrc"
+    chown $REAL_USER:$REAL_USER "$USER_HOME/.bashrc"
+    echo "✅ Alias 'update' agregado"
+else
+    echo "ℹ️  Alias 'update' ya existe"
+fi
 
-# Crear un alias útil
-echo -e "${ANUNCIAR}=== 13.  Crear Alias update  ===${NC}"
-echo "alias update='sudo dnf update -y && flatpak update -y'" >> ~/.bashrc
-source ~/.bashrc
+log_status $? "Configuración de alias"
 log_status $? "Alias update"
-
 
 
 # ----------------------------------------------------------------------
