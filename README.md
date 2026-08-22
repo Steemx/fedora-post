@@ -15,9 +15,14 @@ curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/fedor
 
 sudo ./01_sistema_niri.sh 2>&1 | tee -a ~/fedora_sistema_completo.log
 
-Instalacion minima kde fedora everything
+
+###Instalacion minima kde/gnome fedora everything minimal###
 
 curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/03_kde.sh | sudo bash
+
+curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/04_gnome.sh | sudo bash
+
+
 
 Tambien sirve:
 
