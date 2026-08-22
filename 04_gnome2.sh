@@ -282,6 +282,9 @@ gsettings set org.gnome.desktop.interface text-scaling-factor 1.0
 gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'
 gsettings set org.gnome.desktop.interface icon-theme 'Adwaita'
 
+# Cambio power profiles
+/usr/bin/dnf -y swap tuned-ppd power-profiles-daemon
+
 echo "✅ Optimizaciones aplicadas. Reinicia la sesión para que surtan efecto."
 log_status $? "Optimizacion"
 
