@@ -242,7 +242,8 @@ echo -e "\n[Estado de zRAMctl]:" >> "$LOG_FILE"
 # Asegurar que el sistema arranque en modo gráfico (GNOME)
 systemctl set-default graphical.target
 
-echo "=== Optimizando GNOME 50 para hardware limitado ==="
+echo -e "${ANUNCIAR}=== 13.  Optimizando GNOME 50 para hardware limitado  ===${NC}"
+echo "=== Comprobaciones de Optimizacion gnome ===" >> "$LOG_FILE"
 
 # Desactivar animaciones
 gsettings set org.gnome.desktop.interface enable-animations false
@@ -269,6 +270,11 @@ gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'
 gsettings set org.gnome.desktop.interface icon-theme 'Adwaita'
 
 echo "✅ Optimizaciones aplicadas. Reinicia la sesión para que surtan efecto."
+
+# Crear un alias útil
+echo -e "${ANUNCIAR}=== 13.  Crear Alias update  ===${NC}"
+echo "alias update='sudo dnf update -y && flatpak update -y'" >> ~/.bashrc
+source ~/.bashrc
 
 # ----------------------------------------------------------------------
 echo "--------------------------------------------" >> "$LOG_FILE"
