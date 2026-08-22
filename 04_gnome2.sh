@@ -63,7 +63,7 @@ https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E 
 /usr/bin/dnf -y install flatpak
 /usr/bin/flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 rpm --import https://packages.microsoft.com/keys/microsoft.asc
-/usr/bin/dnf -y config-manager addrepo --from-repofile=https://packages.microsoft.com/yumrepos/edge/config.repo
+#/usr/bin/dnf -y config-manager addrepo --from-repofile=https://packages.microsoft.com/yumrepos/edge/config.repo
 printf '%s\n' \
 '[microsoft-edge]' \
 'name=microsoft-edge' \
