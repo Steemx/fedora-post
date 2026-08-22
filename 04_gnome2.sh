@@ -56,13 +56,16 @@ log_status $? "Optimización de DNF"
 # ==============================================================================
 # 2. REPOSITORIOS Y FLATPAK
 # ==============================================================================
-echo -e "${ANUNCIAR}=== 2. Instalando Repositorios RPM Fusion y Flathub ===${NC}"
+echo -e "${ANUNCIAR}=== 2. Instalando Repositorios RPM Fusion, Flathub y Otros ===${NC}"
 /usr/bin/dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
 https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 /usr/bin/dnf -y install dnf-plugins-core
 /usr/bin/dnf -y install flatpak
 /usr/bin/flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-log_status $? "Repositorios RPM Fusion y Flathub"
+rpm --import https://packages.microsoft.com/keys/microsoft.asc
+/usr/bin/dnf -y config-manager addrepo --from-repofile=https://packages.microsoft.com/yumrepos/edge/config.repo
+curl -fsSL https://tailscale.com/install.sh | sh
+log_status $? "Repositorios RPM Fusion y Flathub y otros"
 
 # ==============================================================================
 # 3. ACTUALIZACIÓN DEL SISTEMA BASE
@@ -83,7 +86,7 @@ echo -e "${ANUNCIAR}=== 4. Instalando GNOME (Versión Minimalista) ===${NC}"
     gnome-tweaks \
     xdg-desktop-portal-gnome xdg-desktop-portal-gtk \
     mutter wayland-protocols-devel pipewire pipewire-pulse wireplumber \
-    gvfs gvfs-mtp gvfs-archive
+    gvfs gvfs-mtp gvfs-archive microsoft-edge-stable
 
 # Habilitar GDM y servicios de usuario
 systemctl enable gdm.service
