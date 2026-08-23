@@ -22,6 +22,10 @@ curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/03_kd
 
 curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/04_gnome.sh | sudo bash
 
+###Universal##
+
+curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/05_universal.sh | sudo bash
+
 
 
 Tambien sirve:
