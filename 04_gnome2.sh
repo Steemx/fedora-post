@@ -125,7 +125,7 @@ echo -e "${ANUNCIAR}=== 5. Instalando herramientas de compresión y utilidades =
 /usr/bin/dnf -y install \
     xz bzip2 unrar p7zip wl-clipboard xclip lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
-    fontconfig btop power-profiles-daemon xdg-user-dirs nano
+    fontconfig btop xdg-user-dirs nano
 
 # Crear carpetas del Home
 sudo -u "$REAL_USER" xdg-user-dirs-update
@@ -284,6 +284,7 @@ gsettings set org.gnome.desktop.interface icon-theme 'Adwaita'
 
 # Cambio power profiles
 /usr/bin/dnf -y swap tuned-ppd power-profiles-daemon
+systemctl enable --now power-profiles-daemon
 
 echo "✅ Optimizaciones aplicadas. Reinicia la sesión para que surtan efecto."
 log_status $? "Optimizacion"
@@ -292,7 +293,6 @@ log_status $? "Optimizacion"
 # 5b. ALIAS ÚTILES PARA EL USUARIO
 # ==============================================================================
 echo -e "${ANUNCIAR}=== 13. Configurando alias útiles ===${NC}"
-
 # Alias para actualizar todo el sistema
 if ! grep -q "alias update=" "$USER_HOME/.bashrc" 2>/dev/null; then
     echo "" >> "$USER_HOME/.bashrc"
