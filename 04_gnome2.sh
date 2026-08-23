@@ -136,6 +136,50 @@ chown $REAL_USER:$REAL_USER "$USER_HOME/.nanorc"
 log_status $? "Herramientas de compresión y utilidades"
 
 # ==============================================================================
+# 5c. INSTALANDO Y CONFIGURANDO FISH SHELL
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 5c. Instalando Fish Shell ===${NC}"
+
+# Instalar fish
+/usr/bin/dnf install -y fish
+
+# Cambiar la shell por defecto del usuario a fish
+chsh -s /bin/fish "$REAL_USER"
+
+# Crear configuración básica de fish para el usuario
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/fish"
+cat << 'EOF' > "$USER_HOME/.config/fish/config.fish"
+# Fish shell configuration
+set -g fish_greeting ""
+
+# Alias útiles
+alias update='sudo dnf update -y && flatpak update -y'
+alias ll='ls -lah'
+alias la='ls -A'
+alias l='ls -CF'
+
+# Prompt personalizado (simple)
+function fish_prompt
+    set_color green
+    echo -n (whoami)
+    set_color normal
+    echo -n '@'
+    set_color blue
+    echo -n (hostname)
+    set_color normal
+    echo -n ':'
+    set_color yellow
+    echo -n (prompt_pwd)
+    set_color normal
+    echo -n ' $ '
+end
+EOF
+
+chown -R $REAL_USER:$REAL_USER "$USER_HOME/.config/fish"
+
+log_status $? "Fish Shell instalado y configurado"
+
+# ==============================================================================
 # 6. FUENTES Y TEMAS
 # ==============================================================================
 echo -e "${ANUNCIAR}=== 6. Instalando fuentes del sistema ===${NC}"
