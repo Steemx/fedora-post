@@ -223,7 +223,7 @@ EOF
 # Optimizaciones de arranque y SSD
 /usr/bin/systemctl disable NetworkManager-wait-online.service
 /usr/bin/systemctl enable fstrim.timer
-/usr/bin/systemctl enable --now power-profiles-daemon
+#/usr/bin/systemctl enable --now power-profiles-daemon
 log_status $? "Firewall, Teclado y Energía"
 
 # ==============================================================================
