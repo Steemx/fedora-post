@@ -106,7 +106,7 @@ log_status $? "GNOME Minimal"
 # ==============================================================================
 echo -e "${ANUNCIAR}=== 4b. Eliminando gnome-software y PackageKit ===${NC}"
 # Desinstalar gnome-software y todos sus componentes
-/usr/bin/dnf remove -y gnome-software gnome-software-rpm-ostree packagekit packagekit-gtk3-module PackageKit-command-not-found
+/usr/bin/dnf remove -y gnome-software gnome-software-rpm-ostree packagekit packagekit-gtk3-module PackageKit-command-not-found yelp gnome-contacts simple-scan gnome-tour rxvt-unicode gnome-terminal      
 
 # Limpiar dependencias huérfanas
 /usr/bin/dnf autoremove -y
