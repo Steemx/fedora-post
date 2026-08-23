@@ -264,17 +264,27 @@ esac
 log_status $? "Fuentes del sistema"
 
 # ==============================================================================
-# 7. CÓDECS MULTIMEDIA Y DRIVERS DE VIDEO
+# 7. CÓDECS MULTIMEDIA Y DRIVERS DE VIDEO (VERSIÓN SEGURA)
 # ==============================================================================
 echo -e "${ANUNCIAR}=== 7. Configurando Códecs y Drivers de Video Intel ===${NC}"
-/usr/bin/dnf remove -y ffmpeg-free libavcodec-free libavformat-free libavutil-free libswscale-free libswresample-free libpostproc-free
-/usr/bin/dnf install -y ffmpeg ffmpeg-libs libavdevice --allowerasing
-/usr/bin/dnf install -y libfreeaptx libldac fdk-aac gstreamer1-plugins-bad-freeworld gstreamer1-plugins-ugly gstreamer1-plugin-libav
+
+# MÉTODO SEGURO: Usar swap en lugar de remove + install
+# Esto reemplaza los códecs libres por los completos sin romper dependencias
+/usr/bin/dnf swap -y ffmpeg-free ffmpeg --allowerasing
+/usr/bin/dnf swap -y libavcodec-free libavcodec --allowerasing 2>/dev/null || true
+/usr/bin/dnf swap -y libavformat-free libavformat --allowerasing 2>/dev/null || true
+
+# Instalar códecs adicionales de forma segura
+/usr/bin/dnf install -y ffmpeg-libs libavdevice --allowerasing
+/usr/bin/dnf install -y libfreeaptx libldac fdk-aac
+/usr/bin/dnf install -y gstreamer1-plugins-bad-freeworld gstreamer1-plugins-ugly gstreamer1-plugin-libav
+
+# Drivers de video Intel (esto NO rompe el entorno gráfico)
 /usr/bin/dnf install -y intel-media-driver libva libva-utils
 /usr/bin/dnf config-manager setopt fedora-cisco-openh264.enabled=1
 /usr/bin/dnf install -y gstreamer1-plugin-openh264 mozilla-openh264
-log_status $? "Códecs multimedia y drivers Intel"
 
+log_status $? "Códecs multimedia y drivers Intel"
 # ==============================================================================
 # 8. ZRAM Y SYSCTL
 # ==============================================================================
