@@ -95,6 +95,9 @@ echo -e "${ANUNCIAR}=== 4. Instalando GNOME (Versión Minimalista) ===${NC}"
     mutter wayland-protocols-devel pipewire pipewire-pulse wireplumber \
     gvfs gvfs-mtp gvfs-archive microsoft-edge-stable
 
+flatpak install flathub org.gnome.Extensions "$REAL_USER"    
+    
+
 # Habilitar GDM y servicios de usuario
 systemctl enable gdm.service
 systemctl --user --machine="${REAL_USER}@.host" enable pipewire pipewire-pulse wireplumber xdg-desktop-portal-gnome
