@@ -68,16 +68,8 @@ echo -e "${ANUNCIAR}=== 2. Instalando Repositorios RPM Fusion, Flathub y Tailsca
 # Flathub
 /usr/bin/flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
-# Tailscale (repo oficial en lugar de curl | sh)
-cat << 'EOF' > /etc/yum.repos.d/tailscale.repo
-[tailscale-stable]
-name=Tailscale stable
-baseurl=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
-enabled=1
-repo_gpgcheck=1
-gpgcheck=0
-gpgkey=https://pkgs.tailscale.com/stable/fedora/repo.gpg
-EOF
+# Tailscale (descargando el archivo .repo oficial, que es solo texto)
+curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo | sudo tee /etc/yum.repos.d/tailscale.repo > /dev/null
 
 log_status $? "Repositorios RPM Fusion, Flathub y Tailscale"
 
