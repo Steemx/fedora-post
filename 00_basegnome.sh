@@ -90,8 +90,6 @@ echo -e "${ANUNCIAR}4. Instalando GNOME minimal...${NC}"
     gvfs gvfs-mtp gvfs-archive \
     xdg-user-dirs xdg-user-dirs-gtk
 
-systemctl enable --now gdm.service
-systemctl set-default graphical.target
 log_status $? "GNOME minimal instalado"
 
 # ==============================================================================
@@ -259,30 +257,38 @@ systemctl enable --now power-profiles-daemon
 log_status $? "GNOME optimizado"
 
 # ==============================================================================
-# 14. LIMPIEZA Y DRACUT
+# 14. LIMPIEZA, DRACUT Y CONFIGURACIÓN FINAL DE ARRANQUE
 # ==============================================================================
 echo -e "${ANUNCIAR}14. Limpiando y generando initramfs...${NC}"
 /usr/bin/dnf clean all
+
+# Generar initramfs con las nuevas configuraciones
 /usr/sbin/dracut --force -v || log_status 1 "Dracut"
 
 echo "=== Hardware Post-Install ===" >> "$LOG_FILE"
 /usr/bin/dmesg | grep -iE "guc|huc" >> "$LOG_FILE" 2>&1 || true
 /usr/bin/zramctl >> "$LOG_FILE" 2>&1 || true
 
-log_status $? "Limpieza completada"
+log_status $? "Limpieza y Dracut completados"
 
 # ==============================================================================
-# FIN
+# CONFIGURACIÓN FINAL PARA QUE ARRANQUE EN GNOME (Sin iniciarlo ahora)
 # ==============================================================================
+# Habilitamos GDM para el PRÓXIMO reinicio, pero NO lo arrancamos ahora (--now)
+systemctl enable gdm.service
+systemctl set-default graphical.target
+
+# ----------------------------------------------------------------------
 echo "--------------------------------------------" >> "$LOG_FILE"
 echo "Sistema base instalado con éxito" >> "$LOG_FILE"
-chown $REAL_USER:$REAL_USER "$LOG_FILE"
+chown "$REAL_USER":"$REAL_USER" "$LOG_FILE"
 
 echo -e "${VERDE}========================================${NC}"
 echo -e "${VERDE}¡SISTEMA BASE LISTO!${NC}"
-echo -e "${VERDE}Reinicia y ejecuta el script de apps:${NC}"
+echo -e "${VERDE}El sistema está configurado para arrancar en GNOME.${NC}"
+echo -e "${VERDE}Reinicia y luego ejecuta el script de apps:${NC}"
 echo -e "${VERDE}curl -sSL .../02_apps.sh | bash${NC}"
 echo -e "${VERDE}========================================${NC}"
 echo ""
-read -p "Presiona ENTER para reiniciar (o Ctrl+C para cancelar)..."
+read -p "Presiona ENTER para reiniciar el sistema ahora (o Ctrl+C para cancelar y quedarte en la terminal)..."
 reboot
