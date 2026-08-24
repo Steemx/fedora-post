@@ -56,7 +56,7 @@ log_status $? "Optimización de DNF"
 # ==============================================================================
 # 2. REPOSITORIOS Y FLATPAK
 # ==============================================================================
-echo -e "${ANUNCIAR}=== 2. Instalando Repositorios RPM Fusion, Flathub y Otros ===${NC}"
+echo -e "${ANUNCIAR}=== 2. Instalando Repositorios RPM Fusion, Flathub y Tailscale ===${NC}"
 
 # RPM Fusion
 /usr/bin/dnf install -y \
@@ -79,7 +79,7 @@ gpgcheck=0
 gpgkey=https://pkgs.tailscale.com/stable/fedora/repo.gpg
 EOF
 
-log_status $? "Repositorios RPM Fusion, Flathub, Edge y Tailscale"
+log_status $? "Repositorios RPM Fusion, Flathub y Tailscale"
 
 # ==============================================================================
 # 3. ACTUALIZACIÓN DEL SISTEMA BASE
@@ -105,7 +105,6 @@ echo -e "${ANUNCIAR}=== 4. Instalando GNOME (Versión Minimalista) ===${NC}"
 
 # Instalar extensiones de GNOME vía Flatpak como usuario real
 sudo -u "$REAL_USER" flatpak install -y flathub org.gnome.Extensions
-sudo -u "$REAL_USER" flatpak install -y flathub com.microsoft.Edge
 
 # Habilitar GDM
 systemctl enable --now gdm.service
@@ -141,7 +140,7 @@ echo -e "${ANUNCIAR}=== 6. Instalando herramientas de compresión y utilidades =
 /usr/bin/dnf -y install \
     xz bzip2 unrar p7zip wl-clipboard xclip lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
-    fontconfig btop nano
+    fontconfig btop nano tailscale
 
 # Crear carpetas del Home
 sudo -u "$REAL_USER" xdg-user-dirs-update
@@ -228,7 +227,7 @@ echo -e "${ANUNCIAR}=== 9. Configurando Códecs y Drivers de Video Intel ===${NC
     gstreamer1-plugins-bad-freeworld gstreamer1-plugins-ugly gstreamer1-plugin-libav
 
 # Drivers de video Intel (Intel UHD 600 del N4020)
-/usr/bin/dnf install -y intel-media-driver libva libva-utils
+/usr/bin/dnf install -y intel-media-driver libva libva-utils libva-intel-driver libvdpau-va-gl
 
 # OpenH264
 /usr/bin/dnf config-manager setopt fedora-cisco-openh264.enabled=1
@@ -347,9 +346,26 @@ systemctl enable --now power-profiles-daemon
 log_status $? "Optimización de GNOME"
 
 # ==============================================================================
-# 14. LIMPIEZA Y COMPROBACIONES FINALES
+# 14. INSTALACIÓN DE MICROSOFT EDGE VÍA FLATPAK
 # ==============================================================================
-echo -e "${ANUNCIAR}=== 14. Limpiando y generando Initramfs ===${NC}"
+echo -e "${ANUNCIAR}=== 14. Instalando Microsoft Edge vía Flatpak ===${NC}"
+
+sudo -u "$REAL_USER" flatpak install -y flathub com.microsoft.Edge
+
+# Crear variable de entorno para que Flatpak use VA-API (aceleración por hardware)
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/environment.d"
+cat << 'EOF' > "$USER_HOME/.config/environment.d/99-flatpak-media.conf"
+LIBVA_DRIVER_NAME=iHD
+MOZ_DISABLE_RDD_SANDBOX=1
+EOF
+chown -R $REAL_USER:$REAL_USER "$USER_HOME/.config/environment.d"
+
+log_status $? "Microsoft Edge vía Flatpak"
+
+# ==============================================================================
+# 15. LIMPIEZA Y COMPROBACIONES FINALES
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 15. Limpiando y generando Initramfs ===${NC}"
 
 /usr/bin/dnf clean all
 /usr/bin/flatpak uninstall --unused -y
@@ -371,6 +387,47 @@ echo -e "\n[Estado de zRAMctl]:" >> "$LOG_FILE"
 /usr/bin/zramctl >> "$LOG_FILE" 2>&1 || echo "No se pudo ejecutar zramctl" >> "$LOG_FILE"
 
 log_status $? "Limpieza y comprobaciones finales"
+
+# ==============================================================================
+# 16. OPTIMIZACIONES DE MICROSOFT EDGE
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 16. Optimizando Microsoft Edge ===${NC}"
+
+# Variables de entorno para VA-API
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/environment.d"
+cat << 'EOF' > "$USER_HOME/.config/environment.d/99-edge.conf"
+LIBVA_DRIVER_NAME=iHD
+MOZ_DISABLE_RDD_SANDBOX=1
+EOF
+chown -R $REAL_USER:$REAL_USER "$USER_HOME/.config/environment.d"
+
+# Configuración de Edge para Flatpak
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.var/app/com.microsoft.Edge/config"
+cat << 'EOF' > "$USER_HOME/.var/app/com.microsoft.Edge/config/edge-flags.conf"
+--enable-gpu-rasterization
+--enable-zero-copy
+--ignore-gpu-blocklist
+--disable-features=CalculateNativeWinOcclusion
+--disable-background-timer-throttling
+--disable-backgrounding-occluded-windows
+--disable-renderer-backgrounding
+--disable-features=TranslateUI
+--memory-pressure-off
+--max-old-space-size=4096
+EOF
+
+# Aplicar flags a Flatpak
+flatpak override --user com.microsoft.Edge --env=EDGE_FLAGS="--enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist"
+
+# Crear archivo .desktop personalizado con optimizaciones
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.local/share/applications"
+cp /var/lib/flatpak/exports/share/applications/com.microsoft.Edge.desktop "$USER_HOME/.local/share/applications/" 2>/dev/null || true
+
+if [ -f "$USER_HOME/.local/share/applications/com.microsoft.Edge.desktop" ]; then
+    sed -i 's|Exec=/usr/bin/flatpak run.*|Exec=/usr/bin/flatpak run --command=/app/bin/microsoft-edge-stable com.microsoft.Edge --enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist --ozone-platform=wayland %U|' "$USER_HOME/.local/share/applications/com.microsoft.Edge.desktop"
+fi
+
+log_status $? "Optimizaciones de Microsoft Edge"
 
 # ----------------------------------------------------------------------
 echo "--------------------------------------------" >> "$LOG_FILE"
