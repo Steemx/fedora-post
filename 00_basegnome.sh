@@ -75,18 +75,35 @@ echo -e "${ANUNCIAR}4. Instalando GNOME minimal...${NC}"
     xdg-desktop-portal-gnome xdg-desktop-portal-gtk \
     mutter pipewire pipewire-pulse wireplumber \
     gvfs gvfs-mtp gvfs-archive \
-    xdg-user-dirs xdg-user-dirs-gtk
+    xdg-user-dirs xdg-user-dirs-gtk \
+    dbus-x11
 log_status $? "GNOME minimal instalado"
 
-# 5. ELIMINAR BLOATWARE
-echo -e "${ANUNCIAR}5. Eliminando bloatware...${NC}"
+# ==============================================================================
+# 5. ELIMINACIÓN DE GNOME-SOFTWARE Y PACKAGEKIT
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 5. Eliminando gnome-software y PackageKit ===${NC}"
+
 /usr/bin/dnf remove -y \
     gnome-software gnome-software-rpm-ostree \
     packagekit packagekit-gtk3-module PackageKit-command-not-found \
     yelp gnome-contacts simple-scan gnome-tour rxvt-unicode
+
+# Limpiar dependencias huérfanas PERO protegiendo nautilus
 /usr/bin/dnf autoremove -y
-rm -rf "$USER_HOME/.local/share/gnome-software" "$USER_HOME/.cache/gnome-software" /var/cache/PackageKit
-log_status $? "Bloatware eliminado"
+
+# Verificar que nautilus siga instalado (reinstalar si fue eliminado)
+if ! rpm -q nautilus &>/dev/null; then
+    echo -e "${VERDE}Reinstalando nautilus...${NC}"
+    /usr/bin/dnf install -y nautilus
+fi
+
+# Limpiar caché residual
+rm -rf "$USER_HOME/.local/share/gnome-software"
+rm -rf "$USER_HOME/.cache/gnome-software"
+rm -rf /var/cache/PackageKit
+
+log_status $? "Eliminación de gnome-software y PackageKit"
 
 # 6. HERRAMIENTAS Y UTILIDADES
 echo -e "${ANUNCIAR}6. Instalando herramientas...${NC}"
