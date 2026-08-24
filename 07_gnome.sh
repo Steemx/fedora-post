@@ -352,20 +352,50 @@ echo -e "${ANUNCIAR}=== 14. Instalando Microsoft Edge vía Flatpak ===${NC}"
 
 sudo -u "$REAL_USER" flatpak install -y flathub com.microsoft.Edge
 
-# Crear variable de entorno para que Flatpak use VA-API (aceleración por hardware)
+log_status $? "Microsoft Edge vía Flatpak"
+
+# ==============================================================================
+# 15. OPTIMIZACIONES DE MICROSOFT EDGE (VA-API + FLAGS + .DESKTOP)
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 15. Optimizando Microsoft Edge ===${NC}"
+
+# 15a. Variables de entorno para VA-API (aceleración por hardware en Intel UHD 600)
 sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/environment.d"
-cat << 'EOF' > "$USER_HOME/.config/environment.d/99-flatpak-media.conf"
+cat << 'EOF' > "$USER_HOME/.config/environment.d/99-edge.conf"
 LIBVA_DRIVER_NAME=iHD
 MOZ_DISABLE_RDD_SANDBOX=1
 EOF
 chown -R $REAL_USER:$REAL_USER "$USER_HOME/.config/environment.d"
 
-log_status $? "Microsoft Edge vía Flatpak"
+# 15b. Override de Flatpak como usuario real (sin EDGE_FLAGS inexistente)
+sudo -u "$REAL_USER" flatpak override --user com.microsoft.Edge \
+    --env=LIBVA_DRIVER_NAME=iHD \
+    --env=MOZ_DISABLE_RDD_SANDBOX=1
+
+# 15c. Crear archivo .desktop personalizado con flags de rendimiento
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.local/share/applications"
+
+# Copiar el .desktop original de Flatpak (ruta correcta)
+if [ -f /var/lib/flatpak/exports/share/applications/com.microsoft.Edge.desktop ]; then
+    cp /var/lib/flatpak/exports/share/applications/com.microsoft.Edge.desktop \
+       "$USER_HOME/.local/share/applications/com.microsoft.Edge.desktop"
+    
+    # Reemplazar el Exec con las flags de rendimiento y Wayland nativo
+    sed -i 's|^Exec=.*|Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=microsoft-edge-stable --file-forwarding com.microsoft.Edge --enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist --ozone-platform=wayland @@u %U @@|' \
+        "$USER_HOME/.local/share/applications/com.microsoft.Edge.desktop"
+    
+    log_status $? "Archivo .desktop de Edge optimizado"
+else
+    echo -e "${ROJO}[WARN] No se encontró el .desktop de Edge. Las optimizaciones de flags no se aplicarán.${NC}"
+    log_status 1 "Archivo .desktop de Edge (no encontrado)"
+fi
+
+log_status $? "Optimizaciones de Microsoft Edge"
 
 # ==============================================================================
-# 15. LIMPIEZA Y COMPROBACIONES FINALES
+# 16. LIMPIEZA Y COMPROBACIONES FINALES
 # ==============================================================================
-echo -e "${ANUNCIAR}=== 15. Limpiando y generando Initramfs ===${NC}"
+echo -e "${ANUNCIAR}=== 16. Limpiando y generando Initramfs ===${NC}"
 
 /usr/bin/dnf clean all
 /usr/bin/flatpak uninstall --unused -y
@@ -387,47 +417,6 @@ echo -e "\n[Estado de zRAMctl]:" >> "$LOG_FILE"
 /usr/bin/zramctl >> "$LOG_FILE" 2>&1 || echo "No se pudo ejecutar zramctl" >> "$LOG_FILE"
 
 log_status $? "Limpieza y comprobaciones finales"
-
-# ==============================================================================
-# 16. OPTIMIZACIONES DE MICROSOFT EDGE
-# ==============================================================================
-echo -e "${ANUNCIAR}=== 16. Optimizando Microsoft Edge ===${NC}"
-
-# Variables de entorno para VA-API
-sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/environment.d"
-cat << 'EOF' > "$USER_HOME/.config/environment.d/99-edge.conf"
-LIBVA_DRIVER_NAME=iHD
-MOZ_DISABLE_RDD_SANDBOX=1
-EOF
-chown -R $REAL_USER:$REAL_USER "$USER_HOME/.config/environment.d"
-
-# Configuración de Edge para Flatpak
-sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.var/app/com.microsoft.Edge/config"
-cat << 'EOF' > "$USER_HOME/.var/app/com.microsoft.Edge/config/edge-flags.conf"
---enable-gpu-rasterization
---enable-zero-copy
---ignore-gpu-blocklist
---disable-features=CalculateNativeWinOcclusion
---disable-background-timer-throttling
---disable-backgrounding-occluded-windows
---disable-renderer-backgrounding
---disable-features=TranslateUI
---memory-pressure-off
---max-old-space-size=4096
-EOF
-
-# Aplicar flags a Flatpak
-flatpak override --user com.microsoft.Edge --env=EDGE_FLAGS="--enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist"
-
-# Crear archivo .desktop personalizado con optimizaciones
-sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.local/share/applications"
-cp /var/lib/flatpak/exports/share/applications/com.microsoft.Edge.desktop "$USER_HOME/.local/share/applications/" 2>/dev/null || true
-
-if [ -f "$USER_HOME/.local/share/applications/com.microsoft.Edge.desktop" ]; then
-    sed -i 's|Exec=/usr/bin/flatpak run.*|Exec=/usr/bin/flatpak run --command=/app/bin/microsoft-edge-stable com.microsoft.Edge --enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist --ozone-platform=wayland %U|' "$USER_HOME/.local/share/applications/com.microsoft.Edge.desktop"
-fi
-
-log_status $? "Optimizaciones de Microsoft Edge"
 
 # ----------------------------------------------------------------------
 echo "--------------------------------------------" >> "$LOG_FILE"
