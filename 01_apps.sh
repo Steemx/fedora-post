@@ -104,6 +104,10 @@ fi
 
 log_status $? "Edge optimizado"
 
+# Instalando Aplicaciones Steam (DNF) ==="
+/usr/bin/dnf install -y steam kde-connect gamemode gamemode-devel
+log_status $? "Instalación de Steam, KDE Connect"
+
 # ==============================================================================
 # 5. LIMPIEZA
 # ==============================================================================
