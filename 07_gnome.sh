@@ -418,6 +418,54 @@ echo -e "\n[Estado de zRAMctl]:" >> "$LOG_FILE"
 
 log_status $? "Limpieza y comprobaciones finales"
 
+# ==============================================================================
+# 17. TWEAKS AVANZADOS DE GNOME PARA HARDWARE LIMITADO
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 17. Tweaks avanzados de GNOME ===${NC}"
+
+sudo -u "$REAL_USER" dbus-run-session bash -c '
+    # Previsualizaciones y miniaturas
+    gsettings set org.gnome.nautilus.preferences show-image-thumbnails "never"
+    gsettings set org.gnome.nautilus.preferences thumbnail-limit 0
+    gsettings set org.gnome.desktop.interface enable-hot-corners false
+    
+    # Ventanas y compositor
+    gsettings set org.gnome.desktop.wm.preferences focus-mode "sloppy"
+    gsettings set org.gnome.desktop.wm.preferences action-double-click-titlebar "toggle-maximize"
+    gsettings set org.gnome.desktop.wm.preferences num-workspaces 2
+    gsettings set org.gnome.mutter dynamic-workspaces true
+    gsettings set org.gnome.mutter workspaces-only-on-primary true
+    
+    # Privacidad y notificaciones
+    gsettings set org.gnome.desktop.privacy remember-recent-files false
+    gsettings set org.gnome.desktop.privacy recent-files-max-age 0
+    gsettings set org.gnome.desktop.privacy send-software-usage-stats false
+    gsettings set org.gnome.desktop.notifications show-in-lock-screen false
+'
+
+# Prioridad de CPU para el usuario (mejor respuesta del sistema)
+sudo mkdir -p /etc/systemd/system/user@.service.d
+cat << 'EOF' | sudo tee /etc/systemd/system/user@.service.d/99-cpu-priority.conf > /dev/null
+[Service]
+Nice=-5
+OOMScoreAdjust=-500
+EOF
+sudo systemctl daemon-reload
+
+# Desactivar servicios innecesarios
+sudo systemctl disable --now ModemManager.service 2>/dev/null
+sudo systemctl disable --now avahi-daemon.service 2>/dev/null
+sudo systemctl disable --now switcheroo-control.service 2>/dev/null
+
+# I/O scheduler para SSD
+cat << 'EOF' | sudo tee /etc/udev/rules.d/60-ioschedulers.rules > /dev/null
+ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="mq-deadline"
+ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="none"
+EOF
+sudo udevadm control --reload-rules
+
+log_status $? "Tweaks avanzados de GNOME"
+
 # ----------------------------------------------------------------------
 echo "--------------------------------------------" >> "$LOG_FILE"
 echo "Proceso finalizado por completo con éxito." >> "$LOG_FILE"
