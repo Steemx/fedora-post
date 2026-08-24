@@ -46,9 +46,7 @@ echo -e "${ANUNCIAR}1. Instalando aplicaciones del sistema (DNF)...${NC}"
 # Steam, Gamemode (para rendimiento en juegos) y Emuladores ligeros (SNES/GBA)
 /usr/bin/dnf install -y \
     steam \
-    gamemode gamemode-devel \
-    mgba \
-    snes9x
+    gamemode gamemode-devel
 
 log_status $? "Aplicaciones DNF instaladas (Steam, Gamemode, mGBA, Snes9x)"
 
