@@ -1,131 +1,117 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# SCRIPT 2: APLICACIONES FLATPAK - SIN ROOT
-# EJECUTAR COMO USUARIO NORMAL: curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/02_apps.sh | bash
+# SCRIPT DE APLICACIONES DE USUARIO (DNF + FLATPAK)
+# Optimizado para: Notebook HP Celeron N4020 / 8GB RAM / 256GB SSD
+# EJECUTAR CON: curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/01_apps.sh | sudo bash
 # ==============================================================================
 
 set -e
 
-# NO ejecutar como root
-if [ "$EUID" -eq 0 ]; then
-    echo "❌ NO ejecutes este script con sudo"
-    echo "Ejecútalo como usuario normal:"
-    echo "curl -sSL .../02_apps.sh | bash"
+VERDE='\033[0;32m'
+ANUNCIAR='\033[1;34m'
+ROJO='\033[0;31m'
+NC='\033[0m'
+
+# Este script necesita sudo para dnf, pero protegeremos a flatpak
+if [ "$EUID" -ne 0 ]; then
+    echo -e "${ROJO}Por favor, ejecuta este script con sudo: sudo $0${NC}"
     exit 1
 fi
 
-REAL_USER=$USER
-USER_HOME=$HOME
-LOG_FILE="$USER_HOME/fedora_apps.log"
+REAL_USER=${SUDO_USER:-$USER}
+USER_HOME=$(eval echo "~$REAL_USER")
+LOG_FILE="$USER_HOME/fedora_apps_install.log"
 
 log_status() {
     if [ $1 -eq 0 ]; then
-        echo "✅ $2"
-        echo "✅ $2" >> "$LOG_FILE"
+        echo -e "${VERDE}[OK] $2${NC}"
+        echo "✅ SUCESO: $2" >> "$LOG_FILE"
     else
-        echo "❌ $2"
-        echo "❌ $2" >> "$LOG_FILE"
+        echo -e "${ROJO}[ERROR] $2${NC}"
+        echo "❌ FALLÓ: $2" >> "$LOG_FILE"
     fi
 }
 
-echo "=== INSTALANDO APLICACIONES DE USUARIO ==="
-echo "=== APLICACIONES FLATPAK ===" > "$LOG_FILE"
+echo -e "${ANUNCIAR}=== INICIANDO INSTALACIÓN DE APLICACIONES ===${NC}"
+echo "=== REPORTE DE APLICACIONES ===" > "$LOG_FILE"
 echo "Fecha: $(date)" >> "$LOG_FILE"
 echo "Usuario: $REAL_USER" >> "$LOG_FILE"
+echo "--------------------------------------------" >> "$LOG_FILE"
 
 # ==============================================================================
-# 1. VERIFICAR FLATPAK
+# 1. APLICACIONES DEL SISTEMA (DNF)
 # ==============================================================================
-echo "1. Verificando Flatpak..."
-if ! command -v flatpak &> /dev/null; then
-    echo "❌ Flatpak no está instalado. Ejecuta primero el script del sistema."
-    exit 1
-fi
+echo -e "${ANUNCIAR}1. Instalando aplicaciones del sistema (DNF)...${NC}"
 
-if ! flatpak remotes | grep -q flathub; then
-    flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-fi
-log_status $? "Flatpak verificado"
+# Steam, Gamemode (para rendimiento en juegos) y Emuladores ligeros (SNES/GBA)
+/usr/bin/dnf install -y \
+    steam \
+    gamemode gamemode-devel \
+    mgba \
+    snes9x
 
-# ==============================================================================
-# 2. ACTUALIZAR REPOS
-# ==============================================================================
-echo "2. Actualizando repositorios..."
-flatpak update --appstream -y
-log_status $? "Repos actualizados"
+log_status $? "Aplicaciones DNF instaladas (Steam, Gamemode, mGBA, Snes9x)"
 
 # ==============================================================================
-# 3. INSTALAR APLICACIONES FLATPAK
+# 2. APLICACIONES FLATPAK (Instaladas como USUARIO REAL, no como root)
 # ==============================================================================
-echo "3. Instalando aplicaciones Flatpak..."
+echo -e "${ANUNCIAR}2. Instalando aplicaciones Flatpak...${NC}"
 
-# Edge
-flatpak install -y flathub com.microsoft.Edge
-log_status $? "Microsoft Edge instalado"
+# Actualizar metadatos
+/usr/bin/flatpak update --appstream -y
 
-# GNOME Extensions
-flatpak install -y flathub org.gnome.Extensions
-log_status $? "GNOME Extensions instalado"
-
-# Apps adicionales (comenta las que no quieras)
-flatpak install -y flathub \
-    org.telegram.desktop \
+# Instalar apps usando sudo -u para evitar el error "Deploy not allowed for user"
+sudo -u "$REAL_USER" flatpak install -y flathub \
     com.discordapp.Discord \
+    com.vysp3r.ProtonPlus \
     com.github.tchx84.Flatseal \
-    io.github.flattool.Warehouse
-log_status $? "Aplicaciones adicionales instaladas"
+    io.github.flattool.Warehouse \
+    org.telegram.desktop
+
+log_status $? "Aplicaciones Flatpak instaladas"
 
 # ==============================================================================
-# 4. OPTIMIZAR EDGE (VA-API + FLAGS)
+# 3. OPTIMIZACIÓN DE EDGE (Si se instaló previamente)
 # ==============================================================================
-echo "4. Optimizando Edge..."
+echo -e "${ANUNCIAR}3. Verificando optimizaciones de Edge...${NC}"
 
-# Variables de entorno para VA-API
-mkdir -p "$USER_HOME/.config/environment.d"
-cat << 'EOF' > "$USER_HOME/.config/environment.d/99-edge.conf"
-LIBVA_DRIVER_NAME=iHD
-MOZ_DISABLE_RDD_SANDBOX=1
-EOF
-
-# Override de Flatpak como usuario (SIN sudo)
-flatpak override --user com.microsoft.Edge \
-    --env=LIBVA_DRIVER_NAME=iHD \
-    --env=MOZ_DISABLE_RDD_SANDBOX=1
-
-# Crear .desktop personalizado con flags
-mkdir -p "$USER_HOME/.local/share/applications"
-if [ -f /var/lib/flatpak/exports/share/applications/com.microsoft.Edge.desktop ]; then
-    cp /var/lib/flatpak/exports/share/applications/com.microsoft.Edge.desktop \
-       "$USER_HOME/.local/share/applications/"
+if sudo -u "$REAL_USER" flatpak list --app | grep -q "com.microsoft.Edge"; then
+    sudo -u "$REAL_USER" flatpak override --user com.microsoft.Edge \
+        --env=LIBVA_DRIVER_NAME=iHD \
+        --env=MOZ_DISABLE_RDD_SANDBOX=1
     
-    sed -i 's|^Exec=.*|Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=microsoft-edge-stable --file-forwarding com.microsoft.Edge --enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist --ozone-platform=wayland @@u %U @@|' \
-        "$USER_HOME/.local/share/applications/com.microsoft.Edge.desktop"
+    # Crear/Actualizar .desktop con flags de rendimiento
+    sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.local/share/applications"
+    if [ -f /var/lib/flatpak/exports/share/applications/com.microsoft.Edge.desktop ]; then
+        cp /var/lib/flatpak/exports/share/applications/com.microsoft.Edge.desktop \
+           "$USER_HOME/.local/share/applications/"
+        
+        sudo -u "$REAL_USER" sed -i 's|^Exec=.*|Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=microsoft-edge-stable --file-forwarding com.microsoft.Edge --enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist --ozone-platform=wayland @@u %U @@|' \
+            "$USER_HOME/.local/share/applications/com.microsoft.Edge.desktop"
+    fi
+    log_status $? "Edge optimizado"
+else
+    echo "ℹ️ Edge no detectado, omitiendo optimización."
 fi
 
-log_status $? "Edge optimizado"
-
-# Instalando Aplicaciones Steam (DNF) ==="
-/usr/bin/dnf install -y steam kde-connect gamemode gamemode-devel
-log_status $? "Instalación de Steam, KDE Connect"
-
 # ==============================================================================
-# 5. LIMPIEZA
+# 4. LIMPIEZA FINAL
 # ==============================================================================
-echo "5. Limpiando..."
-flatpak uninstall --unused -y
+echo -e "${ANUNCIAR}4. Limpiando paquetes y cachés...${NC}"
+
+/usr/bin/flatpak uninstall --unused -y
+/usr/bin/update-desktop-database "$USER_HOME/.local/share/applications" &>/dev/null || true
+
 log_status $? "Limpieza completada"
 
-# ==============================================================================
-# FIN
-# ==============================================================================
+# ----------------------------------------------------------------------
 echo "--------------------------------------------" >> "$LOG_FILE"
-echo "Aplicaciones instaladas con éxito" >> "$LOG_FILE"
+echo "Todas las aplicaciones se instalaron con éxito." >> "$LOG_FILE"
+/usr/bin/chown "$REAL_USER":"$REAL_USER" "$LOG_FILE"
 
-echo ""
-echo "========================================"
-echo "¡APLICACIONES LISTAS!"
-echo "========================================"
-echo ""
-echo "Edge está optimizado con VA-API"
-echo "Reinicia sesión para aplicar cambios"
-echo ""
+echo -e "${VERDE}==============================================================================${NC}"
+echo -e "${VERDE} ¡PROCESO FINALIZADO CON ÉXITO!${NC}"
+echo -e "${VERDE} - Emuladores (mGBA, Snes9x) listos para usar.${NC}"
+echo -e "${VERDE} - Steam y Gamemode configurados.${NC}"
+echo -e "${VERDE} - Apps de usuario instaladas sin errores de permisos.${NC}"
+echo -e "${VERDE}==============================================================================${NC}"
