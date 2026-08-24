@@ -68,17 +68,6 @@ echo -e "${ANUNCIAR}=== 2. Instalando Repositorios RPM Fusion, Flathub y Otros =
 # Flathub
 /usr/bin/flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
-# Microsoft Edge (repo oficial)
-rpm --import https://packages.microsoft.com/keys/microsoft.asc
-cat << 'EOF' > /etc/yum.repos.d/microsoft-edge.repo
-[microsoft-edge]
-name=microsoft-edge
-baseurl=https://packages.microsoft.com/yumrepos/edge-stable
-enabled=1
-gpgcheck=1
-gpgkey=https://packages.microsoft.com/keys/microsoft.asc
-EOF
-
 # Tailscale (repo oficial en lugar de curl | sh)
 cat << 'EOF' > /etc/yum.repos.d/tailscale.repo
 [tailscale-stable]
@@ -112,11 +101,11 @@ echo -e "${ANUNCIAR}=== 4. Instalando GNOME (Versión Minimalista) ===${NC}"
     xdg-desktop-portal-gnome xdg-desktop-portal-gtk \
     mutter pipewire pipewire-pulse wireplumber \
     gvfs gvfs-mtp gvfs-archive \
-    xdg-user-dirs xdg-user-dirs-gtk \
-    microsoft-edge-stable
+    xdg-user-dirs xdg-user-dirs-gtk
 
 # Instalar extensiones de GNOME vía Flatpak como usuario real
 sudo -u "$REAL_USER" flatpak install -y flathub org.gnome.Extensions
+sudo -u "$REAL_USER" flatpak install -y flathub com.microsoft.Edge
 
 # Habilitar GDM
 systemctl enable --now gdm.service
