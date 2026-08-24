@@ -139,7 +139,7 @@ echo -e "${ANUNCIAR}9. Instalando códecs y drivers Intel...${NC}"
 /usr/bin/dnf install -y \
     libfreeaptx libldac fdk-aac \
     gstreamer1-plugins-bad-freeworld gstreamer1-plugins-ugly gstreamer1-plugin-libav
-/usr/bin/dnf install -y intel-media-driver libva libva-utils libva-intel-driver libvdpau-va-gl
+/usr/bin/dnf install -y intel-media-driver libva libva-utils libva-intel-driver --skip-unavailable
 /usr/bin/dnf config-manager setopt fedora-cisco-openh264.enabled=1
 /usr/bin/dnf install -y gstreamer1-plugin-openh264 mozilla-openh264
 log_status $? "Códecs y drivers instalados"
