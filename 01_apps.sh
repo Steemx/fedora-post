@@ -41,9 +41,7 @@ echo "=== 1. Instalando Aplicaciones del Sistema (DNF) ==="
 /usr/bin/dnf install -y \
     steam \
     kde-connect \
-    gamemode gamemode-devel \
-    mgba \
-    snes9x
+    gamemode gamemode-devel
 
 log_status $? "Instalación de Steam, KDE Connect, Gamemode, mGBA y Snes9x"
 
