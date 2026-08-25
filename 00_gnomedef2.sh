@@ -211,6 +211,7 @@ gsettings set org.gnome.mutter attach-modal-dialogs false
 gsettings set org.gnome.desktop.interface text-scaling-factor 1.0
 gsettings set org.gnome.desktop.interface gtk-theme "Adwaita"
 gsettings set org.gnome.desktop.interface icon-theme "Adwaita"
+gsettings set org.gnome.shell always-show-log-out true
 '
 sudo -u "$REAL_USER" XDG_RUNTIME_DIR="/run/user/$USER_UID" systemctl --user mask \
     tracker-extract-3.service tracker-miner-fs-3.service tracker-writeback-3.service \
