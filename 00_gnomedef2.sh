@@ -73,7 +73,7 @@ echo -e "${ANUNCIAR}4. Instalando GNOME minimal...${NC}"
     xdg-desktop-portal-gnome xdg-desktop-portal-gtk \
     mutter pipewire pipewire-pulse wireplumber \
     gvfs gvfs-mtp gvfs-archive \
-    xdg-user-dirs xdg-user-dirs-gtk
+    xdg-user-dirs xdg-user-dirs-gtk openssl
 
 # Habilitar GDM para el próximo reinicio, pero NO iniciarlo ahora (evita salto a GUI)
 systemctl enable gdm.service
