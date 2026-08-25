@@ -89,7 +89,7 @@ echo -e "${ANUNCIAR}4. Instalando KDE Plasma mínimo...${NC}"
     openssl \
     --exclude=kde-connect --exclude=akregator --exclude=kmail --exclude=kontact
 
-systemctl enable plasma-login-manager.service
+systemctl enable plasmalogin
 systemctl set-default graphical.target
 log_status $? "KDE Plasma mínimo instalado"
 
