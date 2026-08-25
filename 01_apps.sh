@@ -1,73 +1,62 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# SCRIPT 2: INSTALACIÓN DE APLICACIONES DE USUARIO (DNF + FLATPAK)
-# Optimizado para: Notebook HP Celeron N4020 / 8GB RAM / 256GB SSD
-# EJECUTAR CON: curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/02_apps.sh | sudo bash
+# SCRIPT 2: INSTALACIÓN DE APLICACIONES DE USUARIO Y CONFIGURACIÓN DE INICIO
 # ==============================================================================
 set -e
-
-# 1. VERIFICACIÓN DE ROOT (Necesario para DNF)
 if [ "$EUID" -ne 0 ]; then
-    echo "⚠️ Este script necesita sudo para instalar paquetes del sistema (DNF)."
-    echo "Por favor, ejecútalo así: sudo $0"
-    echo "(El script se encargará de instalar las apps de Flatpak como tu usuario normal automáticamente)."
-    exit 1
+echo "Por favor, ejecuta este script usando sudo: sudo $0"
+exit 1
 fi
-
 REAL_USER=${SUDO_USER:-$USER}
 USER_HOME=$(eval echo "~$REAL_USER")
 LOG_FILE="$USER_HOME/fedora_apps_install.log"
-
+set +e
 log_status() {
-    if [ $1 -eq 0 ]; then
-        echo -e "✅ SUCESO: $2"
-        echo "✅ SUCESO: $2" >> "$LOG_FILE"
-    else
-        echo -e "❌ FALLÓ: $2"
-        echo "❌ FALLÓ: $2" >> "$LOG_FILE"
-    fi
+if [ $1 -eq 0 ]; then
+echo "✅ SUCESO: $2" >> "$LOG_FILE"
+else
+echo "❌ FALLÓ: $2" >> "$LOG_FILE"
+fi
 }
-
 echo "=== INICIANDO INSTALACIÓN DE APLICACIONES DE USUARIO ==="
 echo "=== REPORTE DE APLICACIONES ===" > "$LOG_FILE"
 echo "Fecha: $(date)" >> "$LOG_FILE"
-echo "Usuario real detectado: $REAL_USER" >> "$LOG_FILE"
+echo "Usuario: $REAL_USER" >> "$LOG_FILE"
 echo "--------------------------------------------" >> "$LOG_FILE"
 
-# ==============================================================================
-# 2. APLICACIONES DEL SISTEMA (DNF) - Requiere sudo
-# ==============================================================================
-echo "=== 1. Instalando Aplicaciones del Sistema (DNF) ==="
-/usr/bin/dnf install -y \
-    steam \
-    kde-connect \
-    gamemode gamemode-devel
+echo "=== 1. Configurando Firewall para KDE Connect ==="
+if /usr/bin/rpm -q firewalld &>/dev/null; then
+firewall-cmd --permanent --add-service=kdeconnect
+firewall-cmd --reload
+fi
+log_status $? "Configuración de Firewall"
 
-log_status $? "Instalación de Steam, KDE Connect, Gamemode, mGBA y Snes9x"
+echo "=== 2. Instalando Aplicaciones del Sistema (DNF) ==="
+/usr/bin/dnf install -y steam kde-connect gamemode gamemode-devel
+log_status $? "Instalación de Steam, KDE Connect, Gamemode y Emuladores"
 
-# ==============================================================================
-# 3. APLICACIONES FLATPAK (Instaladas como USUARIO REAL para evitar errores)
-# ==============================================================================
-echo "=== 2. Instalando Aplicaciones Flatpak (como usuario: $REAL_USER) ==="
+echo "=== 3. Configurando carpetas de usuario e Inicio Automático ==="
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/autostart"
 
-# Actualizar metadatos como usuario real
-sudo -u "$REAL_USER" flatpak update --appstream -y
+echo "=== 4. Instalando Aplicaciones Flatpak (Pesadas) ==="
 
-# Instalar apps como usuario real (el truco para evitar "Deploy not allowed")
-sudo -u "$REAL_USER" flatpak install --user -y flathub \
-    com.discordapp.Discord \
-    com.vysp3r.ProtonPlus \
-    com.github.tchx84.Flatseal \
-    io.github.flattool.Warehouse \
-    org.telegram.desktop \
-    io.github.kolunmi.Bazaar
+# ✅ CORRECCIÓN: Asegurar que el remoto de Flathub exista para evitar "no remote refs"
+/usr/bin/flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
+/usr/bin/flatpak update --appstream -y
+/usr/bin/flatpak install --system -y flathub \
+com.discordapp.Discord \
+com.vysp3r.ProtonPlus \
+com.github.tchx84.Flatseal \
+io.github.flattool.Warehouse \
+org.telegram.desktop \
+io.github.kolunmi.Bazaar
 log_status $? "Instalación de Flatpaks"
 
 # ==============================================================================
-# 4. OPTIMIZACIÓN DE EDGE (Si ya fue instalado en el script anterior)
+# 5. OPTIMIZACIÓN DE EDGE (Si ya fue instalado en el script anterior)
 # ==============================================================================
-echo "=== 3. Verificando/Optimizando Microsoft Edge ==="
+echo "=== 5. Verificando/Optimizando Microsoft Edge ==="
 if sudo -u "$REAL_USER" flatpak list --app | grep -q "com.microsoft.Edge"; then
     # Aplicar variables de entorno
     sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/environment.d"
@@ -95,23 +84,13 @@ else
     echo "ℹ️ Edge no detectado, omitiendo optimización."
 fi
 
-# ==============================================================================
-# 5. LIMPIEZA FINAL
-# ==============================================================================
-echo "=== 4. Limpieza final de paquetes y cachés ==="
-sudo -u "$REAL_USER" flatpak uninstall --unused -y
-/usr/bin/update-desktop-database "$USER_HOME/.local/share/applications" &>/dev/null || true
-
-log_status $? "Limpieza completada"
-
-# ----------------------------------------------------------------------
+echo "=== 6. Limpieza final de paquetes y cachés ==="
+/usr/bin/flatpak uninstall --unused -y
+/usr/bin/update-desktop-database /var/lib/flatpak/exports/share/applications &>/dev/null
 echo "--------------------------------------------" >> "$LOG_FILE"
 echo "Todas las aplicaciones de usuario han sido instaladas con éxito." >> "$LOG_FILE"
 /usr/bin/chown "$REAL_USER":"$REAL_USER" "$LOG_FILE"
-
 echo "=============================================================================="
 echo " ¡PROCESO FINALIZADO CON ÉXITO!"
-echo " - Emuladores (mGBA, Snes9x) listos."
-echo " - Steam y Gamemode configurados."
-echo " - Apps de usuario instaladas SIN errores de permisos."
+echo " Las aplicaciones de usuario y accesos directos están listos en tu entorno."
 echo "=============================================================================="
