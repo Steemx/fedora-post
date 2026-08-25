@@ -178,7 +178,7 @@ echo -e "${ANUNCIAR}6. Instalando herramientas básicas...${NC}"
     lbzip2 lzma arj lzop cpio git webp-pixbuf-loader \
     unar file-roller curl cabextract \
     fontconfig btop nano tailscale \
-    ripgrep fd-find fastfetch dolphin kde-connect
+    ripgrep fd-find fastfetch dolphin kde-connect sensors
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
