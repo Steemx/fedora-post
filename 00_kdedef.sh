@@ -87,7 +87,7 @@ echo -e "${ANUNCIAR}4. Instalando KDE Plasma mínimo...${NC}"
     gvfs gvfs-mtp gvfs-archive \
     xdg-user-dirs xdg-user-dirs-gtk \
     openssl \
-    --exclude=kde-connect --exclude=akregator --exclude=kmail --exclude=kontact
+    --exclude=akregator --exclude=kmail --exclude=kontact
 
 systemctl enable plasmalogin
 systemctl set-default graphical.target
@@ -174,11 +174,11 @@ log_status $? "Bloatware eliminado"
 # 6. HERRAMIENTAS ESENCIALES (solo las mínimas)
 echo -e "${ANUNCIAR}6. Instalando herramientas básicas...${NC}"
 /usr/bin/dnf -y install \
-    xz bzip2 unrar p7zip wl-clipboard xclip \
+    xz bzip2 unrar p7zip wl-clipboard \
     lbzip2 lzma arj lzop cpio git webp-pixbuf-loader \
     unar file-roller curl cabextract \
     fontconfig btop nano tailscale \
-    ripgrep fd-find fastfetch
+    ripgrep fd-find fastfetch dolphin kde-connect
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
