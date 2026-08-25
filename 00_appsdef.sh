@@ -37,7 +37,7 @@ fi
 log_status $? "Configuración de Firewall"
 
 echo "=== 2. Instalando Aplicaciones del Sistema (DNF) ==="
-/usr/bin/dnf install -y steam kde-connect gamemode gamemode-devel mgba snes9x < /dev/null
+/usr/bin/dnf install -y steam kde-connect gamemode gamemode-devel < /dev/null
 log_status $? "Instalación de Steam, KDE Connect, Gamemode y Emuladores"
 
 echo "=== 3. Configurando carpetas de usuario ==="
