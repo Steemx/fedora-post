@@ -321,8 +321,8 @@ systemctl disable --now avahi-daemon.service 2>/dev/null || true
 systemctl disable --now switcheroo-control.service 2>/dev/null || true
 systemctl disable --now cups.service 2>/dev/null || true
 # Desactivar baloo (indexación) definitivamente
-sudo -u "$REAL_USER" balooctl suspend
-sudo -u "$REAL_USER" balooctl disable
+sudo -u "$REAL_USER" balooctl6 suspend
+sudo -u "$REAL_USER" balooctl6 disable
 rm -rf "$USER_HOME/.local/share/baloo"
 log_status $? "Servicios innecesarios desactivados"
 
