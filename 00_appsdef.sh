@@ -60,7 +60,8 @@ echo "=== 4. Instalando Aplicaciones Flatpak (Pesadas) ==="
     io.github.flattool.Warehouse \
     org.telegram.desktop \
     io.github.kolunmi.Bazaar \
-    com.microsoft.Edge < /dev/null
+    com.microsoft.Edge \
+    io.missioncenter.Missioncenter < /dev/null
 log_status $? "Instalación de Flatpaks"
 
 # ==============================================================================
