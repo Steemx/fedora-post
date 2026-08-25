@@ -87,7 +87,7 @@ EOF
         cp /var/lib/flatpak/exports/share/applications/com.microsoft.Edge.desktop \
            "$USER_HOME/.local/share/applications/"
         
-        sudo -u "$REAL_USER" sed -i 's|^Exec=.*|Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=microsoft-edge-stable --file-forwarding com.microsoft.Edge --enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist --ozone-platform=wayland @@u %U @@|' \
+        sudo -u "$REAL_USER" sed -i 's|^Exec=.*|Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --file-forwarding com.microsoft.Edge --enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist --ozone-platform=wayland @@u %U @@|' \
             "$USER_HOME/.local/share/applications/com.microsoft.Edge.desktop"
     fi
     log_status $? "Edge optimizado con VA-API"
