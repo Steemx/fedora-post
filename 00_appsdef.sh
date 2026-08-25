@@ -59,8 +59,7 @@ echo "=== 4. Instalando Aplicaciones Flatpak ==="
     io.github.flattool.Warehouse \
     org.telegram.desktop \
     io.github.kolunmi.Bazaar \
-    com.microsoft.Edge \
-    com.mattjakeman.ExtensionManager < /dev/null
+    com.microsoft.Edge < /dev/null
 log_status $? "Instalación de Flatpaks"
 
 # ==============================================================================
