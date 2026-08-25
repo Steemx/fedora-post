@@ -79,21 +79,27 @@ systemctl enable gdm.service
 systemctl set-default graphical.target
 log_status $? "GNOME minimal instalado"
 
-# 5. ELIMINAR BLOATWARE (Con protección real para Nautilus)
+# 5. ELIMINAR BLOATWARE (Protección nativa para Nautilus)
 echo -e "${ANUNCIAR}5. Eliminando bloatware...${NC}"
 
-# Marcar Nautilus como instalado explícitamente para que autoremove NUNCA lo borre
-/usr/bin/dnf mark install nautilus
+# Marcar Nautilus como paquete de usuario (evita que autoremove lo considere huérfano)
+/usr/bin/dnf mark user nautilus 2>/dev/null || true
 
+# Eliminar bloatware
 /usr/bin/dnf remove -y \
     gnome-software gnome-software-rpm-ostree \
     packagekit packagekit-gtk3-module PackageKit-command-not-found \
     yelp gnome-contacts simple-scan gnome-tour rxvt-unicode
 
+# Limpieza de huérfanos de forma segura
 /usr/bin/dnf autoremove -y
 
+# Asegurar que Nautilus esté presente (si por alguna razón se borró, lo instala)
+/usr/bin/dnf install -y nautilus
+
 rm -rf "$USER_HOME/.local/share/gnome-software" "$USER_HOME/.cache/gnome-software" /var/cache/PackageKit
-log_status $? "Bloatware eliminado sin afectar a Nautilus"
+log_status $? "Bloatware eliminado y Nautilus protegido"
+
 
 
 # 6. HERRAMIENTAS Y UTILIDADES (Se remueve nautilus duplicado)
