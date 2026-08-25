@@ -44,12 +44,13 @@ echo "=== 3. Configurando carpetas de usuario ==="
 sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/autostart"
 log_status $? "Carpetas de usuario configuradas"
 
-echo "=== 4. Instalando Aplicaciones Flatpak ==="
+echo "=== 4. Instalando Aplicaciones Flatpak (Pesadas) ==="
 
-# Asegurar que el remoto de Flathub exista
-/usr/bin/flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo < /dev/null
+# Eliminar el repositorio por defecto de Fedora (innecesario si usamos Flathub)
+/usr/bin/flatpak remote-delete --system fedora 2>/dev/null || true
 
-# Actualizar e instalar con --noninteractive para evitar congelamientos
+# Asegurar que Flathub esté instalado y actualizado
+/usr/bin/flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 /usr/bin/flatpak update --appstream -y < /dev/null
 
 /usr/bin/flatpak install --system -y --noninteractive flathub \
