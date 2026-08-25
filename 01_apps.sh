@@ -50,7 +50,8 @@ com.vysp3r.ProtonPlus \
 com.github.tchx84.Flatseal \
 io.github.flattool.Warehouse \
 org.telegram.desktop \
-io.github.kolunmi.Bazaar
+io.github.kolunmi.Bazaar \
+com.microsoft.Edge
 log_status $? "Instalación de Flatpaks"
 
 # ==============================================================================
