@@ -320,10 +320,12 @@ systemctl disable --now ModemManager.service 2>/dev/null || true
 systemctl disable --now avahi-daemon.service 2>/dev/null || true
 systemctl disable --now switcheroo-control.service 2>/dev/null || true
 systemctl disable --now cups.service 2>/dev/null || true
-# Desactivar baloo (indexación) definitivamente
-sudo -u "$REAL_USER" balooctl6 suspend
-sudo -u "$REAL_USER" balooctl6 disable
-rm -rf "$USER_HOME/.local/share/baloo"
+
+# Desactivar baloo (indexación) definitivamente (con protección contra errores)
+sudo -u "$REAL_USER" balooctl6 suspend 2>/dev/null || true
+sudo -u "$REAL_USER" balooctl6 disable 2>/dev/null || true
+rm -rf "$USER_HOME/.local/share/baloo" 2>/dev/null || true
+
 log_status $? "Servicios innecesarios desactivados"
 
 # 15. TWEAKS DE RENDIMIENTO (CPU y E/S)
