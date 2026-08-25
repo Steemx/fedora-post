@@ -3,38 +3,7 @@ Script personal para mi laptop celeron n4020.
 
 Instalacion directa
 
-curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/fedora-postinstall.sh | sudo bash
 
-Version sin labwc
-
-curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/fedora-postinstall2.sh | sudo bash
-
-Para lxqt
-
-curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/fedora-postinstall-lxqt.sh | sudo bash
-
-sudo ./01_sistema_niri.sh 2>&1 | tee -a ~/fedora_sistema_completo.log
+curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/00_gnome3.sh | sudo bash
 
 
-###Instalacion minima kde/gnome fedora everything minimal###
-
-curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/03_kde.sh | sudo bash
-
-curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/04_gnome.sh | sudo bash
-
-###Universal##
-
-curl -sSL https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/05_universal.sh | sudo bash
-
-
-
-Tambien sirve:
-
-# 1. Descargas el archivo
-curl -O https://raw.githubusercontent.com/Steemx/fedora-postinstall/main/fedora-postinstall.sh
-
-# 2. Le das permisos de ejecución
-chmod +x fedora-postinstall.sh
-
-# 3. Lo lanzas
-sudo ./fedora-postinstall.sh
