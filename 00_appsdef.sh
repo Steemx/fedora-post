@@ -37,7 +37,7 @@ fi
 log_status $? "Configuración de Firewall"
 
 echo "=== 2. Instalando Aplicaciones del Sistema (DNF) ==="
-/usr/bin/dnf install -y steam kde-connect gamemode gamemode-devel < /dev/null
+/usr/bin/dnf install -y steam kde-connect gamemode gamemode-devel gnome-browser-connector < /dev/null
 log_status $? "Instalación de Steam, KDE Connect, Gamemode y Emuladores"
 
 echo "=== 3. Configurando carpetas de usuario ==="
@@ -59,8 +59,8 @@ echo "=== 4. Instalando Aplicaciones Flatpak ==="
     io.github.flattool.Warehouse \
     org.telegram.desktop \
     io.github.kolunmi.Bazaar \
-    com.microsoft.Edge < /dev/null
-
+    com.microsoft.Edge \
+    com.mattjakeman.ExtensionManager < /dev/null
 log_status $? "Instalación de Flatpaks"
 
 # ==============================================================================
