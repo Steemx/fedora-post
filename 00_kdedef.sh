@@ -106,7 +106,6 @@ echo -e "${ANUNCIAR}5. Eliminando todo lo no indispensable...${NC}"
     kde-education \
     kde-games \
     kde-office \
-    kde-network \
     desktop-accessibility \
     dial-up \
     firefox \
@@ -180,7 +179,7 @@ echo -e "${ANUNCIAR}6. Instalando herramientas básicas...${NC}"
     lbzip2 lzma arj lzop cpio git webp-pixbuf-loader \
     unar curl cabextract \
     fontconfig btop nano tailscale \
-    ripgrep fd-find fastfetch dolphin kde-connect sensors
+    ripgrep fd-find fastfetch dolphin kde-connect sensors fuse bluedevil ark bluez fuse-libs
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
