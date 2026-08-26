@@ -76,6 +76,7 @@ echo -e "${ANUNCIAR}4. Instalando KDE Plasma mínimo...${NC}"
     konsole \
     kate \
     ark \
+    bluedevil \
     systemsettings \
     plasma-systemmonitor \
     plasma-nm \
