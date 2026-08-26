@@ -75,6 +75,7 @@ echo -e "${ANUNCIAR}4. Instalando KDE Plasma mínimo...${NC}"
     dolphin \
     konsole \
     kate \
+    ark \
     systemsettings \
     plasma-systemmonitor \
     plasma-nm \
@@ -176,7 +177,7 @@ echo -e "${ANUNCIAR}6. Instalando herramientas básicas...${NC}"
 /usr/bin/dnf -y install \
     xz bzip2 unrar p7zip wl-clipboard \
     lbzip2 lzma arj lzop cpio git webp-pixbuf-loader \
-    unar file-roller curl cabextract \
+    unar curl cabextract \
     fontconfig btop nano tailscale \
     ripgrep fd-find fastfetch dolphin kde-connect sensors
 sudo -u "$REAL_USER" xdg-user-dirs-update
