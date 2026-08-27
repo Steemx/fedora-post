@@ -68,7 +68,7 @@ echo "=== 4. Instalando Aplicaciones Flatpak (Pesadas) ==="
     io.github.kolunmi.Bazaar \
     com.microsoft.Edge \
     org.localsend.localsend_app \
-    io.missioncenter.Missioncenter < /dev/null
+    io.missioncenter.MissionCenter < /dev/null
 log_status $? "Instalación de Flatpaks"
 
 # ==============================================================================
