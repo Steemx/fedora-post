@@ -102,6 +102,22 @@ else
     echo "ℹ️ Edge no detectado, omitiendo optimización."
 fi
 
+# ==============================================================================
+# ESTABLECER EDGE COMO NAVEGADOR PREDETERMINADO
+# ==============================================================================
+echo "=== Estableciendo Edge como navegador predeterminado ==="
+
+# Forzar registro de MIME types para Edge
+gio mime x-scheme-handler/http com.microsoft.Edge.desktop &>/dev/null
+gio mime x-scheme-handler/https com.microsoft.Edge.desktop &>/dev/null
+gio mime text/html com.microsoft.Edge.desktop &>/dev/null
+xdg-settings set default-web-browser com.microsoft.Edge.desktop &>/dev/null
+
+# Actualizar caché de aplicaciones
+update-desktop-database ~/.local/share/applications 2>/dev/null || true
+
+log_status $? "Edge establecido como navegador predeterminado"
+
 echo "=== 6. Limpieza final de paquetes y cachés ==="
 /usr/bin/flatpak uninstall --unused -y < /dev/null
 /usr/bin/update-desktop-database /var/lib/flatpak/exports/share/applications &>/dev/null
