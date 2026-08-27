@@ -56,6 +56,9 @@ echo -e "${ANUNCIAR}2. Instalando repositorios...${NC}"
 /usr/bin/dnf -y install dnf-plugins-core flatpak
 /usr/bin/flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo | tee /etc/yum.repos.d/tailscale.repo > /dev/null
+
+# Habilitar COPR para Tiling Assistant (no está en repos oficiales de Fedora)
+/usr/bin/dnf copr enable -y thebeanogamer/gnome-shell-extension-tiling-assistant
 log_status $? "Repositorios instalados"
 
 # 3. ACTUALIZAR SISTEMA
