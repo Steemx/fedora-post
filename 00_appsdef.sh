@@ -32,12 +32,13 @@ echo "--------------------------------------------" >> "$LOG_FILE"
 echo "=== 1. Configurando Firewall para KDE Connect ==="
 if /usr/bin/rpm -q firewalld &>/dev/null; then
     firewall-cmd --permanent --add-service=kdeconnect
+    firewall-cmd --permanent --add-service=localsend
     firewall-cmd --reload
 fi
 log_status $? "Configuración de Firewall"
 
 echo "=== 2. Instalando Aplicaciones del Sistema (DNF) ==="
-/usr/bin/dnf install -y steam kde-connect gamemode gamemode-devel < /dev/null
+/usr/bin/dnf install -y steam kde-connect gamemode gamemode-devel fuse fuse-libs < /dev/null
 log_status $? "Instalación de Steam, KDE Connect, Gamemode y Emuladores"
 
 echo "=== 3. Configurando carpetas de usuario ==="
@@ -61,6 +62,7 @@ echo "=== 4. Instalando Aplicaciones Flatpak (Pesadas) ==="
     org.telegram.desktop \
     io.github.kolunmi.Bazaar \
     com.microsoft.Edge \
+    org.localsend.localsend_app \
     io.missioncenter.Missioncenter < /dev/null
 log_status $? "Instalación de Flatpaks"
 
