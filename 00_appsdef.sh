@@ -38,7 +38,6 @@ if /usr/bin/rpm -q firewalld &>/dev/null; then
     firewall-cmd --permanent --add-port=53318/tcp
     firewall-cmd --permanent --add-port=53318/udp
     firewall-cmd --reload
-    firewall-cmd --reload
 fi
 log_status $? "Configuración de Firewall"
 
