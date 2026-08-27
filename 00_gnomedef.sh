@@ -77,7 +77,7 @@ echo -e "${ANUNCIAR}4. Instalando GNOME minimal...${NC}"
     mutter pipewire pipewire-pulse wireplumber \
     gvfs gvfs-mtp gvfs-archive \
     xdg-user-dirs xdg-user-dirs-gtk openssl \
-    gnome-shell-extension-tiling-assistant kde-connect
+    gnome-shell-extension-tiling-assistant kde-connect fuse fuse-libs bluez
 
 # Habilitar GDM para el próximo reinicio, pero NO iniciarlo ahora (evita salto a GUI)
 systemctl enable gdm.service
