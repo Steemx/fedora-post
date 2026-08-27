@@ -32,7 +32,12 @@ echo "--------------------------------------------" >> "$LOG_FILE"
 echo "=== 1. Configurando Firewall para KDE Connect ==="
 if /usr/bin/rpm -q firewalld &>/dev/null; then
     firewall-cmd --permanent --add-service=kdeconnect
-    firewall-cmd --permanent --add-service=localsend
+    #Localsend
+    firewall-cmd --permanent --add-port=53317/tcp
+    firewall-cmd --permanent --add-port=53317/udp
+    firewall-cmd --permanent --add-port=53318/tcp
+    firewall-cmd --permanent --add-port=53318/udp
+    firewall-cmd --reload
     firewall-cmd --reload
 fi
 log_status $? "Configuración de Firewall"
