@@ -79,7 +79,7 @@ echo -e "${ANUNCIAR}4. Instalando base mínima Niri...${NC}"
     gdm dbus-x11 \
     waybar fuzzel mako swaybg swayidle swaylock \
     xdg-desktop-portal-gtk xdg-desktop-portal-gnome \
-    polkit-gnome gnome-keyring \
+    gnome-keyring \
     pipewire pipewire-pulse wireplumber \
     NetworkManager network-manager-applet \
     bluez blueman \
