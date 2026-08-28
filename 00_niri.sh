@@ -76,6 +76,7 @@ log_status $? "Sistema actualizado"
 echo -e "${ANUNCIAR}4. Instalando base mínima Niri...${NC}"
 /usr/bin/dnf install -y \
     niri \
+    noctalia \
     gdm dbus-x11 \
     waybar fuzzel mako swaybg swayidle swaylock \
     xdg-desktop-portal-gtk xdg-desktop-portal-gnome \
@@ -86,10 +87,7 @@ echo -e "${ANUNCIAR}4. Instalando base mínima Niri...${NC}"
     gvfs gvfs-mtp gvfs-archive \
     nautilus ptyxis gnome-text-editor gnome-calculator \
     xdg-user-dirs xdg-user-dirs-gtk openssl \
-    kde-connect adwaita-qt6
-
-# Intentar instalar 'noctalia' si está en los repos, si no, no fallará el script
-/usr/bin/dnf install -y noctalia 2>/dev/null || echo -e "${ANUNCIAR}[INFO] Paquete 'noctalia' no encontrado, se usará Adwaita-dark como base.${NC}"
+    kde-connect
 
 systemctl enable gdm.service
 systemctl enable --now NetworkManager.service
@@ -109,7 +107,7 @@ echo -e "${ANUNCIAR}5. Eliminando bloatware de GNOME/KDE...${NC}"
     mutter gnome-terminal rxvt-unicode 2>/dev/null || true
 
 /usr/bin/dnf autoremove -y
-/usr/bin/dnf install -y nautilus # Protección crítica
+/usr/bin/dnf install -y nautilus
 rm -rf /var/cache/PackageKit
 log_status $? "Limpieza completada"
 
@@ -118,7 +116,7 @@ log_status $? "Limpieza completada"
 # ==============================================================================
 echo -e "${ANUNCIAR}6. Instalando herramientas...${NC}"
 /usr/bin/dnf -y install \
-    xz zip bzip2 unrar p7zip wl-clipboard lbzip2 lzma arj lzop \
+    xz bzip2 unrar p7zip wl-clipboard lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
     fontconfig btop nano tailscale brightnessctl pamixer \
     grim slurp jq
@@ -263,7 +261,6 @@ ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="none"
 EOF
 sudo udevadm control --reload-rules
 
-# Apagar instantáneo (ignorar inhibidores de apps)
 sudo sed -i 's/^#*InhibitDelayMaxSec=.*/InhibitDelayMaxSec=0/' /etc/systemd/logind.conf
 log_status $? "Tweaks aplicados"
 
@@ -298,10 +295,8 @@ layout {
     gaps 8
 }
 
-// Animaciones desactivadas para máximo rendimiento
 animations { slowdown 0.0 }
 
-// Apps que abren flotantes
 window-rule {
     match app-id="^(org.kde.kdeconnect|com.github.rafostar.Clapper|org.gnome.Calculator)$"
     open-floating true
@@ -314,19 +309,16 @@ binds {
     Mod+L { spawn "swaylock"; }
     Mod+Shift+E { exit; }
 
-    // Navegación estilo Vim
     Mod+H { focus-column-left; }
     Mod+L { focus-column-right; }
     Mod+K { focus-window-up; }
     Mod+J { focus-window-down; }
 
-    // Mover ventanas
     Mod+Shift+H { move-column-left; }
     Mod+Shift+L { move-column-right; }
     Mod+Shift+K { move-window-up; }
     Mod+Shift+J { move-window-down; }
 
-    // Workspaces (1-5)
     Mod+1 { focus-workspace 1; }
     Mod+2 { focus-workspace 2; }
     Mod+3 { focus-workspace 3; }
@@ -336,7 +328,6 @@ binds {
     Mod+Shift+2 { move-column-to-workspace 2; }
     Mod+Shift+3 { move-column-to-workspace 3; }
 
-    // Multimedia y brillo
     XF86AudioRaiseVolume { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05+" "-l" "1.0"; }
     XF86AudioLowerVolume { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05-"; }
     XF86AudioMute { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
@@ -344,14 +335,12 @@ binds {
     XF86MonBrightnessDown { spawn "brightnessctl" "set" "5%-"; }
 }
 
-// Autostart
 spawn-at-startup "waybar"
 spawn-at-startup "mako"
-spawn-at-startup "swaybg" "-c" "#1e1e2e" // Color sólido oscuro elegante
+spawn-at-startup "swaybg" "-c" "#1e1e2e"
 spawn-at-startup "swayidle" "-w" "timeout" "300" "swaylock" "timeout" "600" "niri msg action power-off-monitors" "resume" "niri msg action do-screen-transition" "before-sleep" "swaylock"
 spawn-at-startup "nm-applet" "--indicator"
 spawn-at-startup "blueman-applet"
-spawn-at-startup "/usr/libexec/polkit-gnome-authentication-agent-1"
 EOF
 log_status $? "Niri configurado"
 
@@ -434,7 +423,6 @@ gtk-application-prefer-dark-theme=true
 EOF
 cp "$USER_HOME/.config/gtk-3.0/settings.ini" "$USER_HOME/.config/gtk-4.0/settings.ini"
 
-# Tema oscuro para KDE Connect (Qt)
 sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.var/app/org.kde.kdeconnect/config/"
 cat << 'EOF' | sudo -u "$REAL_USER" tee "$USER_HOME/.var/app/org.kde.kdeconnect/config/kdeglobals" > /dev/null
 [KDE]
