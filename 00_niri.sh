@@ -261,7 +261,20 @@ ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="none"
 EOF
 sudo udevadm control --reload-rules
 
-sudo sed -i 's/^#*InhibitDelayMaxSec=.*/InhibitDelayMaxSec=0/' /etc/systemd/logind.conf
+# Apagar instantáneo (crear archivo si no existe)
+sudo mkdir -p /etc/systemd
+if [ ! -f /etc/systemd/logind.conf ]; then
+    cat << 'EOF' | sudo tee /etc/systemd/logind.conf > /dev/null
+[Login]
+InhibitDelayMaxSec=0
+HandlePowerKey=poweroff
+HandleSuspendKey=suspend
+HandleHibernateKey=hibernate
+HandleLidSwitch=suspend
+EOF
+else
+    sudo sed -i 's/^#*InhibitDelayMaxSec=.*/InhibitDelayMaxSec=0/' /etc/systemd/logind.conf
+fi
 log_status $? "Tweaks aplicados"
 
 # ==============================================================================
