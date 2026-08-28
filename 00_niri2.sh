@@ -289,8 +289,14 @@ environment {
 }
 
 input {
-    keyboard { xkb { layout "latam" } }
-    touchpad { tap, natural-scroll, dwt }
+    keyboard {
+        xkb-layout "latam"
+    }
+    touchpad {
+        tap
+        natural-scroll
+        dwt
+    }
     focus-follows-mouse max-scroll-amount="0.0"
 }
 
