@@ -420,6 +420,7 @@ log_status $? "Mako configurado"
 # 17. TEMA OSCURO (Noctalia / Adwaita-dark)
 # ==============================================================================
 echo -e "${ANUNCIAR}17. Configurando tema oscuro global...${NC}"
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/environment.d"
 cat << 'EOF' | sudo -u "$REAL_USER" tee "$USER_HOME/.config/environment.d/99-theme.conf" > /dev/null
 GTK_THEME=Adwaita-dark
 QT_QPA_PLATFORMTHEME=gtk3
