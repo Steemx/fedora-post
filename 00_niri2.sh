@@ -118,7 +118,7 @@ echo -e "${ANUNCIAR}6. Instalando herramientas...${NC}"
 /usr/bin/dnf -y install \
     xz bzip2 unrar p7zip wl-clipboard lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
-    fontconfig btop nano tailscale brightnessctl pamiper \
+    fontconfig btop nano tailscale brightnessctl pamixer \
     grim slurp jq
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
