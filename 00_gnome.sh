@@ -5,9 +5,9 @@
 # ==============================================================================
 set -e
 
-VERDE='\033[0;32m'
-ANUNCIAR='\033[1;34m'
-ROJO='\033[0;31m'
+VERDE='\033[1;32m'
+ANUNCIAR='\033[1;36m'
+ROJO='\033[1;31m'
 NC='\033[0m'
 
 if [ "$EUID" -ne 0 ]; then
@@ -91,7 +91,7 @@ echo -e "${ANUNCIAR}5. Eliminando bloatware...${NC}"
     packagekit packagekit-gtk3-module PackageKit-command-not-found \
     yelp gnome-contacts simple-scan gnome-tour rxvt-unicode
 
-/usr/bin/dnf autoremove -y
+
 
 # PROTECCIÓN CRÍTICA: Forzar la instalación de Nautilus.
 # Si ya está, DNF lo ignora. Si autoremove lo borró, lo restaura.
@@ -105,7 +105,7 @@ echo -e "${ANUNCIAR}6. Instalando herramientas...${NC}"
 /usr/bin/dnf -y install \
     xz bzip2 unrar p7zip wl-clipboard lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
-    fontconfig btop nano tailscale
+    fontconfig btop nano tailscale zip
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
@@ -267,6 +267,16 @@ log_status $? "Tweaks avanzados aplicados"
 echo -e "${ANUNCIAR}15. Limpiando y configurando arranque gráfico...${NC}"
 /usr/bin/dnf clean all
 /usr/sbin/dracut --force -v || log_status 1 "Dracut"
+
+# ==============================================================================
+# 16. CONFIGURAR BOOT VERBOSO (Sin quiet ni splash)
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 16. CONFIGURANDO BOOT VERBOSO ===${NC}"
+sed -i 's/ quiet//g; s/ splash//g' /etc/default/grub
+
+# En Fedora moderno (UEFI con wrapper), siempre usar /boot/grub2/grub.cfg
+grub2-mkconfig -o /boot/grub2/grub.cfg
+log_status $? "Boot verbose configurado"
 
 echo "=== Hardware Post-Install ===" >> "$LOG_FILE"
 /usr/bin/dmesg | grep -iE "guc|huc" >> "$LOG_FILE" 2>&1 || true
