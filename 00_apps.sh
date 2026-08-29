@@ -103,23 +103,26 @@ else
 fi
 
 # ==============================================================================
-# ESTABLECER EDGE COMO NAVEGADOR PREDETERMINADO
+# CONFIGURAR EDGE (FLATPAK) COMO NAVEGADOR POR DEFECTO
 # ==============================================================================
-echo "=== Estableciendo Edge como navegador predeterminado ==="
+echo -e "${ANUNCIAR}=== CONFIGURANDO EDGE COMO NAVEGADOR POR DEFECTO ===${NC}"
 
-# Forzar registro de MIME types para Edge
-gio mime x-scheme-handler/http com.microsoft.Edge.desktop &>/dev/null
-gio mime x-scheme-handler/https com.microsoft.Edge.desktop &>/dev/null
-gio mime text/html com.microsoft.Edge.desktop &>/dev/null
-xdg-settings set default-web-browser com.microsoft.Edge.desktop &>/dev/null
+# Actualizar caché de aplicaciones del usuario
+update-desktop-database "$USER_HOME/.local/share/applications" 2>/dev/null || true
 
-# Actualizar caché de aplicaciones
-update-desktop-database ~/.local/share/applications 2>/dev/null || true
+# Establecer Edge como predeterminado para protocolos web y HTML
 sudo -u "$REAL_USER" xdg-mime default com.microsoft.Edge.desktop x-scheme-handler/http
 sudo -u "$REAL_USER" xdg-mime default com.microsoft.Edge.desktop x-scheme-handler/https
 sudo -u "$REAL_USER" xdg-mime default com.microsoft.Edge.desktop text/html
+sudo -u "$REAL_USER" xdg-mime default com.microsoft.Edge.desktop application/xhtml+xml
 
-log_status $? "Edge establecido como navegador predeterminado"
+# Verificación y log
+DEFAULT_BROWSER=$(sudo -u "$REAL_USER" xdg-settings get default-web-browser)
+if [ "$DEFAULT_BROWSER" = "com.microsoft.Edge.desktop" ]; then
+    log_status 0 "Edge establecido como navegador predeterminado"
+else
+    log_status 1 "Advertencia: Verificar configuración de Edge manualmente"
+fi
 
 echo "=== 6. Limpieza final de paquetes y cachés ==="
 /usr/bin/flatpak uninstall --unused -y < /dev/null
