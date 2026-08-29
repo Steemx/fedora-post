@@ -115,6 +115,9 @@ xdg-settings set default-web-browser com.microsoft.Edge.desktop &>/dev/null
 
 # Actualizar caché de aplicaciones
 update-desktop-database ~/.local/share/applications 2>/dev/null || true
+xdg-mime default com.microsoft.Edge.desktop x-scheme-handler/http
+xdg-mime default com.microsoft.Edge.desktop x-scheme-handler/https
+xdg-mime default com.microsoft.Edge.desktop text/html
 
 log_status $? "Edge establecido como navegador predeterminado"
 
