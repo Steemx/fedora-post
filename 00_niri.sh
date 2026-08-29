@@ -109,6 +109,8 @@ echo -e "${ANUNCIAR}=== 5. ELIMINANDO BLOATWARE ===${NC}"
     gdm mutter gnome-terminal rxvt-unicode nautilus ptyxis \
     gnome-text-editor gnome-calculator leafpad gnome-keyring 2>/dev/null || true
 
+    /usr/bin/dnf autoremove -y
+
 rm -rf /var/cache/PackageKit
 log_status $? "Limpieza completada"
 
@@ -336,11 +338,11 @@ log_status $? "Limpieza completada"
 echo -e "${ANUNCIAR}=== 15. CONFIGURANDO BOOT VERBOSO ===${NC}"
 sed -i 's/ quiet//g; s/ splash//g' /etc/default/grub
 
-# Detectar si es UEFI o BIOS
+# Detectar automáticamente si es UEFI o BIOS y regenerar GRUB
 if [ -d /sys/firmware/efi ]; then
-    grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg
+    sudo grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg
 else
-    grub2-mkconfig -o /boot/grub2/grub.cfg
+    sudo grub2-mkconfig -o /boot/grub2/grub.cfg
 fi
 log_status $? "Boot verbose configurado"
 
