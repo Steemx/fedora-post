@@ -178,7 +178,7 @@ echo -e "${ANUNCIAR}6. Instalando herramientas básicas...${NC}"
     xz bzip2 unrar p7zip wl-clipboard \
     lbzip2 lzma arj lzop cpio git webp-pixbuf-loader \
     unar curl cabextract \
-    fontconfig btop nano tailscale \
+    fontconfig btop nano tailscale sensors \
     ripgrep fd-find fastfetch dolphin kde-connect sensors fuse bluedevil ark bluez fuse-libs
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
