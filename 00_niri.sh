@@ -98,7 +98,7 @@ systemctl enable --now bluetooth.service
 log_status $? "Base mínima instalada (Arranque en TTY)"
 
 # ==============================================================================
-# 5. LIMPIEZA AGRESIVA DE BLOATWARE
+# 5. LIMPIEZA DE BLOATWARE
 # ==============================================================================
 echo -e "${ANUNCIAR}=== 5. ELIMINANDO BLOATWARE ===${NC}"
 /usr/bin/dnf remove -y \
@@ -109,7 +109,6 @@ echo -e "${ANUNCIAR}=== 5. ELIMINANDO BLOATWARE ===${NC}"
     gdm mutter gnome-terminal rxvt-unicode nautilus ptyxis \
     gnome-text-editor gnome-calculator leafpad gnome-keyring 2>/dev/null || true
 
-/usr/bin/dnf autoremove -y
 rm -rf /var/cache/PackageKit
 log_status $? "Limpieza completada"
 
