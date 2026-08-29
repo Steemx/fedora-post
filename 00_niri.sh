@@ -294,6 +294,9 @@ sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/niri"
 cp /usr/share/doc/niri/default-config.kdl "$USER_HOME/.config/niri/config.kdl"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.config/niri/config.kdl"
 
+# Comentar waybar si existe en el config (evitar doble barra con Noctalia)
+sed -i 's/^spawn-at-startup "waybar"/# spawn-at-startup "waybar"/' "$USER_HOME/.config/niri/config.kdl"
+
 # Agregar servicios al autostart
 cat << 'AUTOSTART' >> "$USER_HOME/.config/niri/config.kdl"
 
