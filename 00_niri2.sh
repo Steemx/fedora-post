@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# SCRIPT: NIRI + NOCTALIA - FEDORA 44 (MODO TEXTO / TTY PURISTA)
+# SCRIPT: NIRI + NOCTALIA - FEDORA 44 (MODO TTY PURISTA)
 # Optimizado para: Notebook HP Celeron N4020 / 8GB RAM / 256GB SSD
-# Filosofía: Minimalismo extremo. Sin greeter, arranque en TTY, lanzamiento manual.
+# Filosofía: Minimalismo extremo. Sin greeter, TTY, Thunar + Alacritty.
 # ==============================================================================
 set -e
 
-VERDE='\033[1;32m'      # Verde brillante (bold)
-ANUNCIAR='\033[1;36m'   # Cyan brillante (bold) - mucho más visible que azul
-ROJO='\033[1;31m'       # Rojo brillante (bold)
-NC='\033[0m'            # Reset
+VERDE='\033[1;32m'
+ANUNCIAR='\033[1;36m'
+ROJO='\033[1;31m'
+NC='\033[0m'
 
 if [ "$EUID" -ne 0 ]; then
     echo -e "${ROJO}Ejecuta con sudo: sudo $0${NC}"
@@ -31,7 +31,9 @@ log_status() {
     fi
 }
 
-echo -e "${ANUNCIAR}=== INICIANDO INSTALACIÓN: NIRI + NOCTALIA (MODO TTY) ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== NIRI + NOCTALIA (MODO TTY) ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 echo "=== NIRI + NOCTALIA (TTY) ===" > "$LOG_FILE"
 echo "Fecha: $(date)" >> "$LOG_FILE"
 echo "Usuario: $REAL_USER" >> "$LOG_FILE"
@@ -39,7 +41,9 @@ echo "Usuario: $REAL_USER" >> "$LOG_FILE"
 # ==============================================================================
 # 1. OPTIMIZAR DNF
 # ==============================================================================
-echo -e "${ANUNCIAR}1. Optimizando DNF...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 1. OPTIMIZANDO DNF ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 cat << 'EOF' > /etc/dnf/dnf.conf
 [main]
 gpgcheck=True
@@ -54,7 +58,9 @@ log_status $? "DNF optimizado"
 # ==============================================================================
 # 2. REPOSITORIOS
 # ==============================================================================
-echo -e "${ANUNCIAR}2. Instalando repositorios...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 2. INSTALANDO REPOSITORIOS ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 /usr/bin/dnf install -y \
     https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
     https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
@@ -66,30 +72,35 @@ log_status $? "Repositorios instalados"
 # ==============================================================================
 # 3. ACTUALIZAR SISTEMA
 # ==============================================================================
-echo -e "${ANUNCIAR}3. Actualizando sistema...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 3. ACTUALIZANDO SISTEMA ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 /usr/bin/dnf -y upgrade --refresh
 log_status $? "Sistema actualizado"
 
 # ==============================================================================
-# 4. INSTALAR BASE MÍNIMA (Sin GDM, arranque en multi-user)
+# 4. INSTALAR BASE MÍNIMA (Sin GDM, TTY, Thunar + Alacritty)
 # ==============================================================================
-echo -e "${ANUNCIAR}4. Instalando base mínima...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 4. INSTALANDO BASE MÍNIMA ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 /usr/bin/dnf install -y \
     niri \
     noctalia \
     dbus-x11 \
     swaybg swayidle swaylock \
     xdg-desktop-portal-gtk \
-    gnome-keyring \
+    xdg-desktop-portal-gnome \
+    xwayland-satellite \
     pipewire pipewire-pulse wireplumber \
     NetworkManager network-manager-applet \
     bluez blueman \
     gvfs gvfs-mtp gvfs-archive \
-    nautilus ptyxis gnome-text-editor gnome-calculator \
+    thunar alacritty leafpad \
     xdg-user-dirs xdg-user-dirs-gtk openssl \
-    kde-connect
+    kde-connect udiskie mako
 
-# Configurar arranque en modo texto (TTY)
+# Arranque en modo texto (TTY)
 systemctl set-default multi-user.target
 systemctl enable --now NetworkManager.service
 systemctl enable --now bluetooth.service
@@ -98,37 +109,42 @@ log_status $? "Base mínima instalada (Arranque en TTY)"
 # ==============================================================================
 # 5. LIMPIEZA AGRESIVA DE BLOATWARE
 # ==============================================================================
-echo -e "${ANUNCIAR}5. Eliminando bloatware de GNOME/KDE...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 5. ELIMINANDO BLOATWARE ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 /usr/bin/dnf remove -y \
     gnome-software gnome-software-rpm-ostree \
     packagekit packagekit-gtk3-module PackageKit-command-not-found \
     yelp gnome-contacts simple-scan gnome-tour \
     gnome-shell gnome-session gnome-control-center gnome-settings-daemon \
-    gdm mutter gnome-terminal rxvt-unicode 2>/dev/null || true
+    gdm mutter gnome-terminal rxvt-unicode nautilus ptyxis 2>/dev/null || true
 
 /usr/bin/dnf autoremove -y
-/usr/bin/dnf install -y nautilus # Protección crítica
 rm -rf /var/cache/PackageKit
 log_status $? "Limpieza completada"
 
 # ==============================================================================
 # 6. HERRAMIENTAS DE SISTEMA
 # ==============================================================================
-echo -e "${ANUNCIAR}6. Instalando herramientas...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 6. INSTALANDO HERRAMIENTAS ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 /usr/bin/dnf -y install \
-    xz bzip2 unrar p7zip wl-clipboard lbzip2 lzma arj lzop \
+    xz bzip2 unrar p7zip zip wl-clipboard lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
     fontconfig btop nano tailscale brightnessctl pamixer \
-    grim slurp jq zip
+    grim slurp jq
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
 log_status $? "Herramientas instaladas"
 
 # ==============================================================================
-# 7. FISH SHELL (Con alias para lanzar Niri fácilmente)
+# 7. FISH SHELL (Con alias para lanzar Niri)
 # ==============================================================================
-echo -e "${ANUNCIAR}7. Configurando Fish shell...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 7. CONFIGURANDO FISH SHELL ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 /usr/bin/dnf install -y fish
 grep -q "/bin/fish" /etc/shells || echo "/bin/fish" >> /etc/shells
 chsh -s /bin/fish "$REAL_USER"
@@ -139,7 +155,6 @@ alias update='sudo dnf upgrade -y && flatpak update -y'
 alias ll='ls -lah'
 alias la='ls -A'
 alias l='ls -CF'
-# Alias para iniciar el entorno gráfico desde la TTY
 alias niri='niri-session'
 alias start='niri-session'
 
@@ -158,16 +173,20 @@ log_status $? "Fish configurado"
 # ==============================================================================
 # 8. FUENTES
 # ==============================================================================
-echo -e "${ANUNCIAR}8. Instalando fuentes...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 8. INSTALANDO FUENTES ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 /usr/bin/dnf install -y \
     google-noto-sans-fonts google-noto-serif-fonts liberation-fonts \
     fira-code-fonts rsms-inter-fonts papirus-icon-theme adwaita-cursor-theme
 log_status $? "Fuentes instaladas"
 
 # ==============================================================================
-# 9. CÓDECS Y DRIVERS INTEL (Optimización N4020)
+# 9. CÓDECS Y DRIVERS INTEL
 # ==============================================================================
-echo -e "${ANUNCIAR}9. Instalando códecs y drivers Intel...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 9. INSTALANDO CÓDECS Y DRIVERS INTEL ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 /usr/bin/dnf remove -y \
     ffmpeg-free libavcodec-free libavformat-free libavutil-free \
     libswscale-free libswresample-free libpostproc-free
@@ -183,9 +202,11 @@ echo -e "${ANUNCIAR}9. Instalando códecs y drivers Intel...${NC}"
 log_status $? "Códecs y drivers instalados"
 
 # ==============================================================================
-# 10. ZRAM Y SYSCTL (Salvavidas para 8GB RAM)
+# 10. ZRAM Y SYSCTL
 # ==============================================================================
-echo -e "${ANUNCIAR}10. Configurando ZRAM...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 10. CONFIGURANDO ZRAM ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 cat << 'EOF' > /etc/sysctl.d/99-zram-tune.conf
 vm.swappiness = 100
 vm.page-cluster = 0
@@ -210,7 +231,9 @@ log_status $? "ZRAM configurado"
 # ==============================================================================
 # 11. GuC/HuC INTEL
 # ==============================================================================
-echo -e "${ANUNCIAR}11. Habilitando GuC/HuC...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 11. HABILITANDO GuC/HuC ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 cat << 'EOF' > /etc/modprobe.d/i915.conf
 options i915 enable_guc=2
 options i915 enable_fbc=1
@@ -219,9 +242,11 @@ EOF
 log_status $? "GuC/HuC habilitados"
 
 # ==============================================================================
-# 12. FIREWALL Y VARIABLES DE ENTORNO GLOBALES
+# 12. FIREWALL Y VARIABLES DE ENTORNO
 # ==============================================================================
-echo -e "${ANUNCIAR}12. Configurando firewall y entorno Wayland...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 12. CONFIGURANDO FIREWALL Y ENTORNO ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 if /usr/bin/rpm -q firewalld &>/dev/null; then
     firewall-cmd --permanent --add-service=kdeconnect
     firewall-cmd --permanent --add-port=53317/tcp
@@ -232,12 +257,15 @@ if /usr/bin/rpm -q firewalld &>/dev/null; then
 fi
 
 localectl set-x11-keymap latam pc105
+
+# Teclado en variables de entorno del sistema
 sed -i '/XKB_DEFAULT_/d' /etc/environment 2>/dev/null || true
 cat << 'EOF' >> /etc/environment
 XKB_DEFAULT_LAYOUT=latam
 XKB_DEFAULT_MODEL=pc105
 EOF
 
+# Variables Wayland globales
 sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/environment.d"
 cat << 'EOF' | sudo -u "$REAL_USER" tee "$USER_HOME/.config/environment.d/99-wayland.conf" > /dev/null
 XDG_CURRENT_DESKTOP=niri
@@ -255,7 +283,9 @@ log_status $? "Firewall y entorno configurados"
 # ==============================================================================
 # 13. TWEAKS DE RENDIMIENTO Y APAGADO INSTANTÁNEO
 # ==============================================================================
-echo -e "${ANUNCIAR}13. Aplicando tweaks de rendimiento...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 13. APLICANDO TWEAKS DE RENDIMIENTO ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 sudo mkdir -p /etc/systemd/system/user@.service.d
 cat << 'EOF' | sudo tee /etc/systemd/system/user@.service.d/99-cpu-priority.conf > /dev/null
 [Service]
@@ -271,6 +301,7 @@ ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="none"
 EOF
 sudo udevadm control --reload-rules
 
+# Apagar instantáneo (blindado)
 sudo mkdir -p /etc/systemd
 if [ ! -f /etc/systemd/logind.conf ]; then
     echo -e "[Login]\nInhibitDelayMaxSec=0" | sudo tee /etc/systemd/logind.conf > /dev/null
@@ -282,7 +313,9 @@ log_status $? "Tweaks aplicados"
 # ==============================================================================
 # 14. CONFIGURACIÓN DE NIRI
 # ==============================================================================
-echo -e "${ANUNCIAR}14. Configurando Niri...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 14. CONFIGURANDO NIRI ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/niri"
 
 # Copiar configuración original de Niri
@@ -290,14 +323,23 @@ cp /usr/share/doc/niri/default-config.kdl "$USER_HOME/.config/niri/config.kdl"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.config/niri/config.kdl"
 
 # Agregar Noctalia al autostart
-echo 'spawn-at-startup "noctalia"' >> "$USER_HOME/.config/niri/config.kdl"
+#echo 'spawn-at-startup "noctalia"' >> "$USER_HOME/.config/niri/config.kdl"
+# Agregar servicios al autostart
+cat << 'AUTOSTART' >> "$USER_HOME/.config/niri/config.kdl"
+spawn-at-startup "noctalia"
+spawn-at-startup "mako"
+spawn-at-startup "udiskie"
+spawn-at-startup "xwayland-satellite"
+AUTOSTART
 
 log_status $? "Niri configurado"
 
 # ==============================================================================
 # 15. LIMPIEZA FINAL Y DRACUT
 # ==============================================================================
-echo -e "${ANUNCIAR}15. Limpiando y reconstruyendo initramfs...${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
+echo -e "${ANUNCIAR}=== 15. LIMPIEZA FINAL ===${NC}"
+echo -e "${ANUNCIAR}========================================${NC}"
 /usr/bin/dnf clean all
 /usr/sbin/dracut --force -v || log_status 1 "Dracut"
 
@@ -308,15 +350,9 @@ log_status $? "Limpieza completada"
 
 echo -e "${VERDE}========================================${NC}"
 echo -e "${VERDE}¡INSTALACIÓN COMPLETADA (MODO TTY)!${NC}"
-echo -e "${VERDE}Al reiniciar, verás la terminal de login (TTY).${NC}"
-echo -e "${VERDE}Inicia sesión con tu usuario y contraseña.${NC}"
-echo -e "${VERDE}Luego, escribe 'niri' o 'start' y presiona Enter.${NC}"
 echo -e "${VERDE}========================================${NC}"
-echo -e "${VERDE}Atajos principales en Niri:${NC}"
-echo -e "${VERDE}  Super + T    → Terminal (Ptyxis)${NC}"
-echo -e "${VERDE}  Super + Q        → Cerrar ventana${NC}"
-echo -e "${VERDE}  Super + H/J/K/L  → Navegar (estilo Vim)${NC}"
-echo -e "${VERDE}  Super + 1-5      → Cambiar workspace${NC}"
+echo -e "${VERDE}Al reiniciar, verás la terminal de login (TTY).${NC}"
+echo -e "${VERDE}Inicia sesión y escribe 'niri' o 'start'.${NC}"
 echo -e "${VERDE}========================================${NC}"
 echo ""
 read -p "Presiona ENTER para reiniciar ahora (o Ctrl+C para cancelar)..."
