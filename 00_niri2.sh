@@ -286,7 +286,7 @@ echo -e "${ANUNCIAR}14. Configurando Niri...${NC}"
 sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/niri"
 
 # Copiar configuración original de Niri
-cp /usr/share/doc/niri/default.config.kdl "$USER_HOME/.config/niri/config.kdl"
+cp /usr/share/doc/niri/default-config.kdl "$USER_HOME/.config/niri/config.kdl"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.config/niri/config.kdl"
 
 # Agregar Noctalia al autostart
