@@ -89,7 +89,7 @@ echo -e "${ANUNCIAR}=== 4. INSTALANDO BASE MÍNIMA ===${NC}"
     gvfs gvfs-mtp gvfs-archive \
     thunar alacritty mousepad \
     xdg-user-dirs xdg-user-dirs-gtk openssl \
-    udiskie mako
+    udiskie mako sensors
 
 # Arranque en modo texto (TTY)
 systemctl set-default multi-user.target
