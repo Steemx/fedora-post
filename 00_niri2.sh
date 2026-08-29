@@ -6,10 +6,10 @@
 # ==============================================================================
 set -e
 
-VERDE='\033[0;32m'
-ANUNCIAR='\033[1;34m'
-ROJO='\033[0;31m'
-NC='\033[0m'
+VERDE='\033[1;32m'      # Verde brillante (bold)
+ANUNCIAR='\033[1;36m'   # Cyan brillante (bold) - mucho más visible que azul
+ROJO='\033[1;31m'       # Rojo brillante (bold)
+NC='\033[0m'            # Reset
 
 if [ "$EUID" -ne 0 ]; then
     echo -e "${ROJO}Ejecuta con sudo: sudo $0${NC}"
