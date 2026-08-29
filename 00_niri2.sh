@@ -96,7 +96,7 @@ echo -e "${ANUNCIAR}========================================${NC}"
     NetworkManager network-manager-applet \
     bluez blueman \
     gvfs gvfs-mtp gvfs-archive \
-    thunar alacritty leafpad \
+    thunar alacritty mousepad \
     xdg-user-dirs xdg-user-dirs-gtk openssl \
     kde-connect udiskie mako
 
