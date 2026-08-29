@@ -335,15 +335,11 @@ log_status $? "Limpieza completada"
 # ==============================================================================
 # 16. CONFIGURAR BOOT VERBOSO (Sin quiet ni splash)
 # ==============================================================================
-echo -e "${ANUNCIAR}=== 15. CONFIGURANDO BOOT VERBOSO ===${NC}"
+echo -e "${ANUNCIAR}=== 16. CONFIGURANDO BOOT VERBOSO ===${NC}"
 sed -i 's/ quiet//g; s/ splash//g' /etc/default/grub
 
-# Detectar automáticamente si es UEFI o BIOS y regenerar GRUB
-if [ -d /sys/firmware/efi ]; then
-    sudo grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg
-else
-    sudo grub2-mkconfig -o /boot/grub2/grub.cfg
-fi
+# En Fedora moderno (UEFI con wrapper), siempre usar /boot/grub2/grub.cfg
+grub2-mkconfig -o /boot/grub2/grub.cfg
 log_status $? "Boot verbose configurado"
 
 echo -e "${VERDE}========================================${NC}"
