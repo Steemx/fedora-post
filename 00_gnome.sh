@@ -124,10 +124,10 @@ chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
 log_status $? "Herramientas instaladas"
 
 # ==============================================================================
-# 7. INSTALAR KDE-CONNECT (Después de limpieza para evitar conflictos)
+# 7. INSTALAR KDE-CONNECT (Al final para asegurar sus dependencias con RPM Fusion)
 # ==============================================================================
-echo -e "${ANUNCIAR}=== 7. INSTALANDO KDE-CONNECT ===${NC}"
-/usr/bin/dnf install -y kde-connect
+echo -e "${ANUNCIAR}=== INSTALANDO KDE-CONNECT ===${NC}"
+/usr/bin/dnf install -y kde-connect GSConnect
 /usr/bin/dnf mark install kde-connect 2>/dev/null || true
 log_status $? "KDE-Connect instalado y protegido"
 
@@ -168,13 +168,9 @@ echo -e "${ANUNCIAR}=== 9. INSTALANDO FUENTES ===${NC}"
 log_status $? "Fuentes instaladas"
 
 # ==============================================================================
-# 10. CÓDECS Y DRIVERS INTEL
+# 10. CÓDECS Y DRIVERS INTEL (Primero se instalan los códecs de RPM Fusion)
 # ==============================================================================
 echo -e "${ANUNCIAR}=== 10. INSTALANDO CÓDECS Y DRIVERS INTEL ===${NC}"
-/usr/bin/dnf remove -y \
-    ffmpeg-free libavcodec-free libavformat-free libavutil-free \
-    libswscale-free libswresample-free libpostproc-free
-
 /usr/bin/dnf install -y ffmpeg ffmpeg-libs libavdevice --allowerasing
 /usr/bin/dnf install -y \
     libfreeaptx libldac fdk-aac \
