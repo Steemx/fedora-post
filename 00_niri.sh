@@ -109,7 +109,7 @@ echo -e "${ANUNCIAR}=== 5. ELIMINANDO BLOATWARE ===${NC}"
     gdm mutter gnome-terminal rxvt-unicode nautilus ptyxis \
     gnome-text-editor gnome-calculator leafpad gnome-keyring 2>/dev/null || true
 
-/usr/bin/dnf autoremove -y
+
 
 rm -rf /var/cache/PackageKit
 log_status $? "Limpieza completada"
