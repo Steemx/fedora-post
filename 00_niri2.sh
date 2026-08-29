@@ -119,7 +119,7 @@ echo -e "${ANUNCIAR}6. Instalando herramientas...${NC}"
     xz bzip2 unrar p7zip wl-clipboard lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
     fontconfig btop nano tailscale brightnessctl pamixer \
-    grim slurp jq
+    grim slurp jq zip
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
@@ -232,6 +232,11 @@ if /usr/bin/rpm -q firewalld &>/dev/null; then
 fi
 
 localectl set-x11-keymap latam pc105
+sed -i '/XKB_DEFAULT_/d' /etc/environment 2>/dev/null || true
+cat << 'EOF' >> /etc/environment
+XKB_DEFAULT_LAYOUT=latam
+XKB_DEFAULT_MODEL=pc105
+EOF
 
 sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/environment.d"
 cat << 'EOF' | sudo -u "$REAL_USER" tee "$USER_HOME/.config/environment.d/99-wayland.conf" > /dev/null
@@ -275,85 +280,18 @@ fi
 log_status $? "Tweaks aplicados"
 
 # ==============================================================================
-# 14. CONFIGURACIÓN DE NIRI (config.kdl)
+# 14. CONFIGURACIÓN DE NIRI
 # ==============================================================================
 echo -e "${ANUNCIAR}14. Configurando Niri...${NC}"
 sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/niri"
-cat << 'EOF' | sudo -u "$REAL_USER" tee "$USER_HOME/.config/niri/config.kdl" > /dev/null
-environment {
-    MOZ_ENABLE_WAYLAND "1"
-    QT_QPA_PLATFORM "wayland"
-    XDG_CURRENT_DESKTOP "niri"
-    XDG_SESSION_TYPE "wayland"
-    EDITOR "nano"
-}
 
-input {
-    keyboard {
-        xkb-layout "latam"
-    }
-    touchpad {
-        tap
-        natural-scroll
-        dwt
-    }
-    focus-follows-mouse max-scroll-amount="0.0"
-}
+# Copiar configuración original de Niri
+cp /usr/share/doc/niri/default.config.kdl "$USER_HOME/.config/niri/config.kdl"
+chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.config/niri/config.kdl"
 
-layout {
-    focus-ring { width 2; active-color "#89b4fa"; inactive-color "#45475a" }
-    border { width 0 }
-    center-focused-column "never"
-    preset-column-widths { proportion 1.0; proportion 0.5; proportion 0.33333 }
-    default-column-width { proportion 0.5 }
-    gaps 8
-}
+# Agregar Noctalia al autostart
+echo 'spawn-at-startup "noctalia"' >> "$USER_HOME/.config/niri/config.kdl"
 
-animations { slowdown 0.0 }
-
-window-rule {
-    match app-id="^(org.kde.kdeconnect|com.github.rafostar.Clapper|org.gnome.Calculator)$"
-    open-floating true
-}
-
-binds {
-    Mod+T { spawn "ptyxis"; }
-    Mod+Q { close-window; }
-    Mod+L { spawn "swaylock"; }
-    Mod+X { exit; }
-
-    Mod+H { focus-column-left; }
-    Mod+L { focus-column-right; }
-    Mod+K { focus-window-up; }
-    Mod+J { focus-window-down; }
-
-    Mod+Shift+H { move-column-left; }
-    Mod+Shift+L { move-column-right; }
-    Mod+Shift+K { move-window-up; }
-    Mod+Shift+J { move-window-down; }
-
-    Mod+1 { focus-workspace 1; }
-    Mod+2 { focus-workspace 2; }
-    Mod+3 { focus-workspace 3; }
-    Mod+4 { focus-workspace 4; }
-    Mod+5 { focus-workspace 5; }
-    Mod+Shift+1 { move-column-to-workspace 1; }
-    Mod+Shift+2 { move-column-to-workspace 2; }
-    Mod+Shift+3 { move-column-to-workspace 3; }
-
-    XF86AudioRaiseVolume { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05+" "-l" "1.0"; }
-    XF86AudioLowerVolume { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05-"; }
-    XF86AudioMute { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
-    XF86MonBrightnessUp { spawn "brightnessctl" "set" "+5%"; }
-    XF86MonBrightnessDown { spawn "brightnessctl" "set" "5%-"; }
-}
-
-spawn-at-startup "noctalia"
-spawn-at-startup "swaybg" "-c" "#1e1e2e"
-spawn-at-startup "swayidle" "-w" "timeout" "300" "swaylock" "timeout" "600" "niri msg action power-off-monitors" "resume" "niri msg action do-screen-transition" "before-sleep" "swaylock"
-spawn-at-startup "nm-applet" "--indicator"
-spawn-at-startup "blueman-applet"
-EOF
 log_status $? "Niri configurado"
 
 # ==============================================================================
