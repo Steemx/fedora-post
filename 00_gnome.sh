@@ -117,7 +117,7 @@ echo -e "${ANUNCIAR}=== 6. INSTALANDO HERRAMIENTAS ===${NC}"
     xz bzip2 unrar p7zip zip wl-clipboard lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
     fontconfig btop nano tailscale brightnessctl pamixer adw-gtk3-theme \
-    grim slurp jq sensors
+    grim slurp jq sensors clipq
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
