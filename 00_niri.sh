@@ -89,7 +89,7 @@ echo -e "${ANUNCIAR}=== 4. INSTALANDO BASE MÍNIMA ===${NC}"
     gvfs gvfs-mtp gvfs-archive \
     thunar alacritty mousepad \
     xdg-user-dirs xdg-user-dirs-gtk openssl \
-    kde-connect udiskie mako
+    udiskie mako
 
 # Arranque en modo texto (TTY)
 systemctl set-default multi-user.target
@@ -125,6 +125,14 @@ sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
 log_status $? "Herramientas instaladas"
+
+# ==============================================================================
+# 6a. INSTALAR KDE-CONNECT (Después de limpieza para evitar conflictos)
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 6. INSTALANDO KDE-CONNECT ===${NC}"
+/usr/bin/dnf install -y kde-connect
+systemctl --user enable --now kdeconnect-indicator.service 2>/dev/null || true
+log_status $? "KDE-Connect instalado"
 
 # ==============================================================================
 # 7. FISH SHELL (Con alias para lanzar Niri)
@@ -253,6 +261,7 @@ EOF
 
 /usr/bin/systemctl disable NetworkManager-wait-online.service
 /usr/bin/systemctl enable fstrim.timer
+/usr/bin/systemctl enable tailscaled
 log_status $? "Firewall y entorno configurados"
 
 # ==============================================================================
@@ -320,6 +329,20 @@ echo "=== Hardware Post-Install ===" >> "$LOG_FILE"
 /usr/bin/dmesg | grep -iE "guc|huc" >> "$LOG_FILE" 2>&1 || true
 /usr/bin/zramctl >> "$LOG_FILE" 2>&1 || true
 log_status $? "Limpieza completada"
+
+# ==============================================================================
+# 16. CONFIGURAR BOOT VERBOSO (Sin quiet ni splash)
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 15. CONFIGURANDO BOOT VERBOSO ===${NC}"
+sed -i 's/ quiet//g; s/ splash//g' /etc/default/grub
+
+# Detectar si es UEFI o BIOS
+if [ -d /sys/firmware/efi ]; then
+    grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg
+else
+    grub2-mkconfig -o /boot/grub2/grub.cfg
+fi
+log_status $? "Boot verbose configurado"
 
 echo -e "${VERDE}========================================${NC}"
 echo -e "${VERDE}¡INSTALACIÓN COMPLETADA (MODO TTY)!${NC}"
