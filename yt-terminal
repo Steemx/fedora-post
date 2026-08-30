@@ -1,0 +1,498 @@
+#!/usr/bin/env python3
+"""
+YouTube Terminal Client v3 - Con sistema de favoritos
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import sys
+import os
+
+# Forzar UTF-8 en la salida de la terminal
+os.environ['PYTHONIOENCODING'] = 'utf-8'
+if sys.stdout.encoding != 'UTF-8':
+    sys.stdout.reconfigure(encoding='utf-8')
+if sys.stderr.encoding != 'UTF-8':
+    sys.stderr.reconfigure(encoding='utf-8')
+
+
+import json
+import random
+import subprocess
+from pathlib import Path
+
+CONFIG_DIR = Path.home() / ".config" / "yt-terminal"
+CONFIG_FILE = CONFIG_DIR / "config.json"
+COOKIES_FILE = CONFIG_DIR / "cookies.txt"
+FAVORITES_FILE = CONFIG_DIR / "favoritas.txt"
+CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
+class YouTubeTerminal:
+    def __init__(self):
+        self.config = self.load_config()
+        self.shuffle_mode = False
+        self.repeat_mode = False
+        self.track_queue = []
+        self.username = self.config.get('username', '')
+        
+    def load_config(self):
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE, 'r') as f:
+                return json.load(f)
+        return {}
+    
+    def save_config(self):
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(self.config, f, indent=2)
+    
+    def check_dependencies(self):
+        deps = ['yt-dlp', 'mpv']
+        missing = []
+        for dep in deps:
+            try:
+                subprocess.run([dep, '--version'], capture_output=True, check=True)
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                missing.append(dep)
+        if missing:
+            print(f"\n❌ Faltan dependencias: {', '.join(missing)}")
+            print("Instálalas con: sudo dnf install yt-dlp mpv")
+            return False
+        return True
+    
+    def load_favorites(self):
+        if not FAVORITES_FILE.exists():
+            return []
+        favorites = []
+        with open(FAVORITES_FILE, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    parts = line.split('|', 1)
+                    if len(parts) == 2:
+                        favorites.append({
+                            'name': parts[0].strip(),
+                            'url': parts[1].strip()
+                        })
+        return favorites
+    
+    def save_favorite(self, name, url):
+        with open(FAVORITES_FILE, 'a') as f:
+            f.write(f"{name}|{url}\n")
+        print(f"✅ Agregado a favoritos: {name}")
+    
+    def remove_favorite(self, index):
+        favorites = self.load_favorites()
+        if 0 <= index < len(favorites):
+            removed = favorites.pop(index)
+            with open(FAVORITES_FILE, 'w') as f:
+                for fav in favorites:
+                    f.write(f"{fav['name']}|{fav['url']}\n")
+            print(f"✅ Eliminado: {removed['name']}")
+    
+    def setup_username(self):
+        print("\n👤 CONFIGURACIÓN DE USUARIO")
+        print("=" * 50)
+        print("Para listar tus playlists, necesito tu nombre de usuario de YouTube.")
+        print("Ejemplo: Si tu canal es youtube.com/@juanperez, tu usuario es 'juanperez'")
+        print("\nTu nombre de usuario actual:", self.username if self.username else "(no configurado)")
+        print("\nIngresa tu nombre de usuario (o deja vacío para mantener el actual): ", end='')
+        new_username = input().strip().replace('@', '')
+        if new_username:
+            self.username = new_username
+            self.config['username'] = new_username
+            self.save_config()
+            print(f"✅ Usuario configurado: @{self.username}")
+            return True
+        elif self.username:
+            return True
+        else:
+            print("❌ Debes configurar un usuario para ver tus playlists")
+            return False
+    
+    def list_user_playlists(self):
+        if not self.username:
+            if not self.setup_username():
+                return []
+        print(f"\n📋 Obteniendo playlists de @{self.username}...")
+        print("   (Esto puede tardar unos segundos)")
+        url = f"https://www.youtube.com/@{self.username}/playlists"
+        cmd = ['yt-dlp', '--flat-playlist', '--dump-json', '--playlist-end', '9999', url]
+        if COOKIES_FILE.exists():
+            cmd.extend(['--cookies', str(COOKIES_FILE)])
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            playlists = []
+            for line in result.stdout.strip().split('\n'):
+                if line:
+                    try:
+                        data = json.loads(line)
+                        if data.get('_type') == 'playlist' or data.get('playlist_count') is not None:
+                            playlists.append({
+                                'id': data.get('id'),
+                                'title': data.get('title', 'Sin título'),
+                                'count': data.get('playlist_count', 'N/A'),
+                                'url': data.get('url') or f"https://www.youtube.com/playlist?list={data.get('id')}"
+                            })
+                    except json.JSONDecodeError:
+                        continue
+            return playlists
+        except Exception as e:
+            print(f"❌ Error al obtener playlists: {e}")
+            return []
+    
+    def list_special_playlists(self):
+        print("\n📋 Playlists especiales de tu cuenta:")
+        print("=" * 60)
+        special = [
+            {'title': '❤️ Videos que me gustan', 'url': 'https://www.youtube.com/playlist?list=LL', 'id': 'LL'},
+            {'title': '⏰ Ver más tarde', 'url': 'https://www.youtube.com/playlist?list=WL', 'id': 'WL'},
+        ]
+        for i, pl in enumerate(special, 1):
+            print(f"[{i}] {pl['title']}")
+        return special
+    
+    def list_favorites(self):
+        favorites = self.load_favorites()
+        if not favorites:
+            print("\n📋 No tienes playlists en favoritos")
+            print("Agrega playlists desde el menú principal (opción 8)")
+            return []
+        print("\n📋 Tus playlists favoritas:")
+        print("=" * 60)
+        for i, fav in enumerate(favorites, 1):
+            print(f"[{i}] {fav['name']}")
+        return favorites
+    
+    def get_playlist_tracks(self, playlist_url):
+        print(f"\n🎵 Obteniendo tracks de la playlist...")
+        cmd = ['yt-dlp', '--flat-playlist', '--dump-json', playlist_url]
+        if COOKIES_FILE.exists():
+            cmd.extend(['--cookies', str(COOKIES_FILE)])
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            tracks = []
+            for line in result.stdout.strip().split('\n'):
+                if line:
+                    try:
+                        data = json.loads(line)
+                        tracks.append({
+                            'id': data.get('id'),
+                            'title': data.get('title', 'Sin título'),
+                            'duration': data.get('duration_string', 'N/A'),
+                            'uploader': data.get('uploader', 'Desconocido'),
+                            'url': data.get('url') or f"https://www.youtube.com/watch?v={data.get('id')}"
+                        })
+                    except json.JSONDecodeError:
+                        continue
+            return tracks
+        except Exception as e:
+            print(f"❌ Error al obtener playlist: {e}")
+            return []
+    
+    def search(self, query, search_type='video'):
+        print(f"\n🔍 Buscando: {query}...")
+        cmd = ['yt-dlp', '--flat-playlist', '--dump-json']
+        if search_type == 'video':
+            cmd.append(f'ytsearch10:{query}')
+        else:
+            cmd.append(f'ytsearchmusic10:{query}')
+        if COOKIES_FILE.exists():
+            cmd.extend(['--cookies', str(COOKIES_FILE)])
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            videos = []
+            for line in result.stdout.strip().split('\n'):
+                if line:
+                    try:
+                        data = json.loads(line)
+                        videos.append({
+                            'id': data.get('id'),
+                            'title': data.get('title', 'Sin título'),
+                            'duration': data.get('duration_string', 'N/A'),
+                            'uploader': data.get('uploader', 'Desconocido'),
+                            'url': data.get('url') or f"https://www.youtube.com/watch?v={data.get('id')}"
+                        })
+                    except json.JSONDecodeError:
+                        continue
+            return videos
+        except Exception as e:
+            print(f"❌ Error en la búsqueda: {e}")
+            return []
+    
+    def play(self, url, audio_only=False):
+        print(f"\n▶️  Reproduciendo...")
+        cmd = ['mpv']
+        if audio_only:
+            cmd.append('--no-video')
+        else:
+            cmd.extend(['--hwdec=vaapi', '--ytdl-format=bestvideo[height<=?1080]+bestaudio/best'])
+        if COOKIES_FILE.exists():
+               cmd.append(f'--ytdl-raw-options=cookies={COOKIES_FILE}')
+        cmd.append(url)
+        try:
+            subprocess.run(cmd, check=True)
+        except KeyboardInterrupt:
+            print("\n⏸️  Reproducción detenida")
+        except Exception as e:
+            print(f"❌ Error al reproducir: {e}")
+    
+    def display_results(self, results, title="Resultados"):
+        print(f"\n{'=' * 60}")
+        print(f"  {title}")
+        print(f"{'=' * 60}")
+        for i, item in enumerate(results, 1):
+            if 'count' in item:
+                print(f"\n[{i}] {item['title']}")
+                print(f"    Tracks: {item['count']}")
+            else:
+                print(f"\n[{i}] {item['title']}")
+                print(f"    Duración: {item['duration']} | Por: {item['uploader']}")
+        print(f"\n{'=' * 60}")
+    
+    def play_queue(self):
+        if not self.track_queue:
+            print("❌ No hay tracks en la cola")
+            return
+        queue = self.track_queue.copy()
+        if self.shuffle_mode:
+            random.shuffle(queue)
+            print("\n🔀 Modo shuffle activado")
+        while True:
+            for i, track in enumerate(queue):
+                print(f"\n🎵 [{i+1}/{len(queue)}] {track['title']}")
+                self.play(track['url'], audio_only=True)
+                print("\nOpciones:")
+                print("  [n] Siguiente track")
+                print("  [p] Track anterior")
+                print("  [r] Repetir este track")
+                print("  [q] Salir de la reproducción")
+                print("  [s] Toggle shuffle")
+                print("  [m] Volver al menú principal")
+                choice = input("\nTu elección: ").strip().lower()
+                if choice == 'n':
+                    continue
+                elif choice == 'p':
+                    if i > 0:
+                        queue.insert(0, queue.pop(i-1))
+                    continue
+                elif choice == 'r':
+                    queue.insert(i, track)
+                    continue
+                elif choice == 'q':
+                    return
+                elif choice == 's':
+                    self.shuffle_mode = not self.shuffle_mode
+                    if self.shuffle_mode:
+                        random.shuffle(queue)
+                        print("🔀 Shuffle activado")
+                    else:
+                        print("🔀 Shuffle desactivado")
+                    continue
+                elif choice == 'm':
+                    return
+            if not self.repeat_mode:
+                break
+    
+    def menu(self):
+        while True:
+            print("\n" + "=" * 60)
+            print("  🎵 YouTube Terminal Client v3")
+            print("=" * 60)
+            print("\nOpciones:")
+            print("  [1] Buscar videos")
+            print("  [2] Buscar música")
+            print("  [3] Mis playlists (detectadas automáticamente)")
+            print("  [4] Playlists especiales (Me gusta, Ver más tarde)")
+            print("  [5] Mis favoritas")
+            print("  [6] Abrir playlist por URL")
+            print("  [7] Configurar usuario")
+            print("  [8] Agregar playlist a favoritos")
+            print("  [9] Eliminar playlist de favoritos")
+            print("  [10] Toggle shuffle")
+            print("  [11] Toggle repeat")
+            print("  [q] Salir")
+            print(f"\nUsuario: @{self.username if self.username else '(no configurado)'}")
+            print(f"Estado: Shuffle={'ON' if self.shuffle_mode else 'OFF'} | Repeat={'ON' if self.repeat_mode else 'OFF'}")
+            choice = input("\nTu elección: ").strip().lower()
+            if choice == '1':
+                query = input("\n¿Qué quieres buscar? ").strip()
+                if query:
+                    results = self.search(query, 'video')
+                    if results:
+                        self.display_results(results, "Videos encontrados")
+                        self.select_and_play(results)
+            elif choice == '2':
+                query = input("\n¿Qué música quieres buscar? ").strip()
+                if query:
+                    results = self.search(query, 'music')
+                    if results:
+                        self.display_results(results, "Música encontrada")
+                        self.select_and_play(results, audio_only=True)
+            elif choice == '3':
+                playlists = self.list_user_playlists()
+                if playlists:
+                    self.display_results(playlists, "Tus playlists")
+                    print("\nOpciones:")
+                    print(f"  [1-{len(playlists)}] Seleccionar playlist")
+                    print("  [m] Volver al menú")
+                    sel = input("\nTu elección: ").strip().lower()
+                    if sel.isdigit():
+                        idx = int(sel) - 1
+                        if 0 <= idx < len(playlists):
+                            pl = playlists[idx]
+                            print(f"\n📂 Abriendo: {pl['title']}")
+                            tracks = self.get_playlist_tracks(pl['url'])
+                            if tracks:
+                                self.track_queue = tracks
+                                self.display_results(tracks, f"{pl['title']} ({len(tracks)} tracks)")
+                                print("\n¿Reproducir playlist? (s/n): ", end='')
+                                if input().strip().lower() == 's':
+                                    self.play_queue()
+            elif choice == '4':
+                special = self.list_special_playlists()
+                print("\nOpciones:")
+                print(f"  [1-{len(special)}] Seleccionar playlist")
+                print("  [m] Volver al menú")
+                sel = input("\nTu elección: ").strip().lower()
+                if sel.isdigit():
+                    idx = int(sel) - 1
+                    if 0 <= idx < len(special):
+                        pl = special[idx]
+                        print(f"\n📂 Abriendo: {pl['title']}")
+                        tracks = self.get_playlist_tracks(pl['url'])
+                        if tracks:
+                            self.track_queue = tracks
+                            self.display_results(tracks, f"{pl['title']} ({len(tracks)} tracks)")
+                            print("\n¿Reproducir playlist? (s/n): ", end='')
+                            if input().strip().lower() == 's':
+                                self.play_queue()
+            elif choice == '5':
+                favorites = self.list_favorites()
+                if favorites:
+                    print("\nOpciones:")
+                    print(f"  [1-{len(favorites)}] Seleccionar playlist")
+                    print("  [m] Volver al menú")
+                    sel = input("\nTu elección: ").strip().lower()
+                    if sel.isdigit():
+                        idx = int(sel) - 1
+                        if 0 <= idx < len(favorites):
+                            fav = favorites[idx]
+                            print(f"\n📂 Abriendo: {fav['name']}")
+                            tracks = self.get_playlist_tracks(fav['url'])
+                            if tracks:
+                                self.track_queue = tracks
+                                self.display_results(tracks, f"{fav['name']} ({len(tracks)} tracks)")
+                                print("\n¿Reproducir playlist? (s/n): ", end='')
+                                if input().strip().lower() == 's':
+                                    self.play_queue()
+            elif choice == '6':
+                url = input("\nPega la URL de la playlist: ").strip()
+                if url:
+                    tracks = self.get_playlist_tracks(url)
+                    if tracks:
+                        self.track_queue = tracks
+                        self.display_results(tracks, f"Playlist ({len(tracks)} tracks)")
+                        print("\n¿Reproducir playlist? (s/n): ", end='')
+                        if input().strip().lower() == 's':
+                            self.play_queue()
+            elif choice == '7':
+                self.setup_username()
+            elif choice == '8':
+                print("\n➕ AGREGAR PLAYLIST A FAVORITOS")
+                name = input("Nombre de la playlist: ").strip()
+                url = input("URL de la playlist: ").strip()
+                if name and url:
+                    self.save_favorite(name, url)
+            elif choice == '9':
+                favorites = self.load_favorites()
+                if favorites:
+                    self.display_results([{'title': f['name']} for f in favorites], "Tus favoritas")
+                    print("\nOpciones:")
+                    print(f"  [1-{len(favorites)}] Eliminar playlist")
+                    print("  [m] Volver al menú")
+                    sel = input("\nTu elección: ").strip().lower()
+                    if sel.isdigit():
+                        idx = int(sel) - 1
+                        if 0 <= idx < len(favorites):
+                            self.remove_favorite(idx)
+            elif choice == '10':
+                self.shuffle_mode = not self.shuffle_mode
+                print(f"\n🔀 Shuffle: {'ON' if self.shuffle_mode else 'OFF'}")
+            elif choice == '11':
+                self.repeat_mode = not self.repeat_mode
+                print(f"\n🔁 Repeat: {'ON' if self.repeat_mode else 'OFF'}")
+            elif choice == 'q':
+                print("\n¡Hasta luego!")
+                break
+    
+    def select_and_play(self, results, audio_only=False):
+        print("\nOpciones:")
+        print("  [1-{}] Seleccionar track".format(len(results)))
+        print("  [a] Reproducir todos")
+        print("  [m] Volver al menú")
+        choice = input("\nTu elección: ").strip().lower()
+        if choice == 'm':
+            return
+        elif choice == 'a':
+            print("\n¿Cómo quieres reproducir?")
+            print("  [v] Con video")
+            print("  [s] Solo audio")
+            mode = input("Tu elección: ").strip().lower()
+            if mode == 'v':
+                audio_mode = False
+            else:
+                audio_mode = True
+            self.track_queue = results
+            # Modificamos temporalmente el comportamiento de play_queue
+            for i, track in enumerate(self.track_queue):
+                print(f"\n🎵 [{i+1}/{len(self.track_queue)}] {track['title']}")
+                self.play(track['url'], audio_only=audio_mode)
+                print("\nOpciones:")
+                print("  [n] Siguiente track")
+                print("  [q] Salir")
+                sel = input("Tu elección: ").strip().lower()
+                if sel == 'q':
+                    break
+        elif choice.isdigit():
+            index = int(choice) - 1
+            if 0 <= index < len(results):
+                track = results[index]
+                print(f"\n▶️  Reproduciendo: {track['title']}")
+                self.play(track['url'], audio_only=audio_only)
+    
+    def setup_cookies(self):
+        print("\n🔐 CONFIGURACIÓN DE COOKIES")
+        print("=" * 50)
+        print("Para acceder a tu cuenta Premium de YouTube:")
+        print("1. Abre Edge y ve a youtube.com")
+        print("2. Instala la extensión 'Get cookies.txt LOCALLY'")
+        print("3. Con YouTube abierto, haz clic en la extensión")
+        print("4. Descarga el archivo cookies.txt")
+        print(f"5. Guárdalo en: {COOKIES_FILE}")
+        print("\n¿Ya tienes el archivo de cookies? (s/n): ", end='')
+        if input().strip().lower() == 's':
+            if COOKIES_FILE.exists():
+                print("✅ Archivo de cookies encontrado")
+                return True
+            else:
+                print(f"❌ No se encontró el archivo en {COOKIES_FILE}")
+                return False
+        return False
+
+def main():
+    print("\n🎵 YouTube Terminal Client v3")
+    print("=" * 60)
+    yt = YouTubeTerminal()
+    if not yt.check_dependencies():
+        sys.exit(1)
+    if not COOKIES_FILE.exists():
+        print("\n⚠️  No se encontró archivo de cookies")
+        print("Algunas funciones (playlists privadas, cuenta Premium) no estarán disponibles")
+        print("Puedes configurarlas desde el menú principal")
+    if not yt.username:
+        print("\n⚠️  No has configurado tu nombre de usuario")
+        print("Para ver tus playlists, configura tu usuario desde el menú (opción 7)")
+    yt.menu()
+
+if __name__ == '__main__':
+    main()
