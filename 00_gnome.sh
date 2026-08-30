@@ -316,6 +316,29 @@ sed -i 's/ quiet//g; s/ splash//g' /etc/default/grub
 grub2-mkconfig -o /boot/grub2/grub.cfg
 log_status $? "Boot verbose configurado"
 
+# ==============================================================================
+# 17. CONFIGURAR GPASTE (Portapapeles invisible con sincronización PRIMARY)
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 17. CONFIGURANDO GPASTE (INVISIBLE) ===${NC}"
+
+# Instalar solo el daemon de GPaste (SIN la extensión de GNOME para evitar íconos)
+/usr/bin/dnf install -y gpaste
+
+# Configurar sincronización bidireccional (PRIMARY ↔ CLIPBOARD) vía gsettings
+sudo -u "$REAL_USER" gsettings set org.gnome.GPaste sync-clipboard-to-primary true
+sudo -u "$REAL_USER" gsettings set org.gnome.GPaste sync-primary-to-clipboard true
+sudo -u "$REAL_USER" gsettings set org.gnome.GPaste synchronize-clipboards true
+sudo -u "$REAL_USER" gsettings set org.gnome.GPaste track-changes true
+
+# Ajustes de minimalismo (limitar historial y desactivar imágenes para ahorrar RAM)
+sudo -u "$REAL_USER" gsettings set org.gnome.GPaste max-history-size 30
+sudo -u "$REAL_USER" gsettings set org.gnome.GPaste images-support false
+
+# Habilitar e iniciar el daemon de GPaste (sin GUI)
+sudo -u "$REAL_USER" systemctl --user enable --now org.gnome.GPaste.service
+
+log_status $? "GPaste configurado (invisible, con sincronización PRIMARY)"
+
 echo -e "${VERDE}========================================${NC}"
 echo -e "${VERDE}¡SISTEMA GNOME MINIMAL LISTO!${NC}"
 echo -e "${VERDE}El sistema arrancará en GDM (modo gráfico).${NC}"
