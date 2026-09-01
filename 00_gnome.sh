@@ -126,10 +126,10 @@ log_status $? "Herramientas instaladas"
 # ==============================================================================
 # 7. INSTALAR KDE-CONNECT (Al final para asegurar sus dependencias con RPM Fusion)
 # ==============================================================================
-echo -e "${ANUNCIAR}=== INSTALANDO KDE-CONNECT ===${NC}"
-/usr/bin/dnf install -y kde-connect GSConnect
-/usr/bin/dnf mark install kde-connect 2>/dev/null || true
-log_status $? "KDE-Connect instalado y protegido"
+#echo -e "${ANUNCIAR}=== INSTALANDO KDE-CONNECT ===${NC}"
+#/usr/bin/dnf install -y kde-connect GSConnect
+#/usr/bin/dnf mark install kde-connect 2>/dev/null || true
+#log_status $? "KDE-Connect instalado y protegido"
 
 # ==============================================================================
 # 8. FISH SHELL
