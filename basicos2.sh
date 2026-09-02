@@ -89,7 +89,7 @@ echo -e "${ANUNCIAR}=== 5. INSTALANDO HERRAMIENTAS ===${NC}"
     xz bzip2 unrar p7zip zip wl-clipboard lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
     fontconfig btop nano tailscale brightnessctl pamixer \
-    jq lm_sensors loupe
+    jq lm_sensors loupe labwc-tweaks
 
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" > "$USER_HOME/.nanorc"
