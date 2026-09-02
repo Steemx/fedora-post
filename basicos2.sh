@@ -232,7 +232,7 @@ EOF
 
 # Asegurar permisos correctos
 chown -R "$REAL_USER":"$REAL_USER" "$USER_HOME/.config/labwc"
-log_status $? "Teclado labwc configurado en latam"
+log_status $? "Teclado labwc configurado en latam (usar labwc-tweaks para configuraciones adicionales)"
 
 # ==============================================================================
 # 13. OPTIMIZACIÓN DEL SISTEMA (Tweaks de rendimiento)
