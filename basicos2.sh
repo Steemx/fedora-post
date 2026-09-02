@@ -224,8 +224,8 @@ cat << 'EOF' > "$USER_HOME/.config/labwc/rc.xml"
 <?xml version="1.0" encoding="UTF-8"?>
 <labwc_config>
   <keyboard>
-    <layout>latam</layout>
-    <model>pc105</model>
+    <xkbLayout>latam</xkbLayout>
+    <xkbModel>pc105</xkbModel>
   </keyboard>
 </labwc_config>
 EOF
