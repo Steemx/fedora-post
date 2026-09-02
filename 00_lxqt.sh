@@ -79,7 +79,7 @@ log_status $? "Sistema actualizado"
 # ==============================================================================
 echo -e "${ANUNCIAR}=== 4. INSTALANDO LXQT + LABWC ===${NC}"
 # Instalar grupo completo de LXQt
-/usr/bin/dnf group install -y "LXQt Desktop"
+/usr/bin/dnf install @lxqt-desktop-environment
 
 # Instalar labwc (compositor Wayland), SDDM y herramientas de portapapeles/wayland
 /usr/bin/dnf install -y \
@@ -96,8 +96,7 @@ log_status $? "LXQt + labwc instalados"
 # ==============================================================================
 echo -e "${ANUNCIAR}=== 5. ELIMINANDO BLOATWARE ===${NC}"
 /usr/bin/dnf remove -y \
-    lxqt-screenshooter lxqt-archiver \
-    yelp cheese gnome-contacts 2>/dev/null || true
+       yelp cheese gnome-contacts 2>/dev/null || true
 
 # Protección crítica: garantizar que pcmanfm-qt se mantenga
 /usr/bin/dnf install -y pcmanfm-qt
