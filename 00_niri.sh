@@ -92,7 +92,6 @@ echo -e "${ANUNCIAR}=== 4. INSTALANDO BASE MÍNIMA ===${NC}"
     udiskie mako sensors copyq sddm
 
 # Arranque en modo texto (TTY)
-systemctl set-default multi-user.target
 systemctl enable --now NetworkManager.service
 systemctl enable --now bluetooth.service
 log_status $? "Base mínima instalada (Arranque en TTY)"
