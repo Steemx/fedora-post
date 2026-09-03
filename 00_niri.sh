@@ -121,7 +121,7 @@ echo -e "${ANUNCIAR}=== 6. INSTALANDO HERRAMIENTAS ===${NC}"
     xz bzip2 unrar p7zip zip wl-clipboard lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
     fontconfig btop nano tailscale brightnessctl pamixer \
-    grim slurp jq
+    grim slurp jq thunar-archive-plugin thunar-media-tags-plugin
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
@@ -380,6 +380,7 @@ spawn-at-startup "noctalia"
 spawn-at-startup "mako"
 spawn-at-startup "udiskie"
 spawn-at-startup "xwayland-satellite"
+spawn-at-startup "copyq"
 AUTOSTART
 
 log_status $? "Niri configurado"
