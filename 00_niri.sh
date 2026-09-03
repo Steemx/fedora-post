@@ -294,6 +294,33 @@ sudo -u "$REAL_USER" systemctl --user enable xdg-desktop-portal-gtk.service
 log_status $? "Portales Flatpak configurados (Selector de archivos arreglado)"
 
 # ==============================================================================
+# 12c. FORZAR MODO OSCURO EN PORTALES GTK
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 12c. CONFIGURANDO MODO OSCURO GTK ===${NC}"
+
+# Crear directorios de configuración GTK para el usuario real
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/gtk-3.0"
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/gtk-4.0"
+
+# Crear settings.ini forzando el tema oscuro en GTK3
+cat << 'EOF' | sudo -u "$REAL_USER" tee "$USER_HOME/.config/gtk-3.0/settings.ini" > /dev/null
+[Settings]
+gtk-application-prefer-dark-theme=1
+EOF
+
+# Crear settings.ini forzando el tema oscuro en GTK4
+cat << 'EOF' | sudo -u "$REAL_USER" tee "$USER_HOME/.config/gtk-4.0/settings.ini" > /dev/null
+[Settings]
+gtk-application-prefer-dark-theme=1
+EOF
+
+# Asegurar permisos correctos
+chown -R "$REAL_USER":"$REAL_USER" "$USER_HOME/.config/gtk-3.0"
+chown -R "$REAL_USER":"$REAL_USER" "$USER_HOME/.config/gtk-4.0"
+
+log_status $? "Modo oscuro forzado en portales GTK"
+
+# ==============================================================================
 # 13. OPTIMIZACIÓN DEL SISTEMA (Tweaks de rendimiento)
 # ==============================================================================
 echo -e "${ANUNCIAR}=== 13. OPTIMIZANDO SISTEMA ===${NC}"
