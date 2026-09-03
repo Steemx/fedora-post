@@ -54,6 +54,7 @@ echo -e "${ANUNCIAR}=== 2. Instalando Repositorios RPM Fusion y Plugins ===${NC}
 /usr/bin/dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
                        https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 /usr/bin/dnf -y install dnf-plugins-core
+curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo | tee /etc/yum.repos.d/tailscale.repo > /dev/null
 log_status $? "Repositorios RPM Fusion y Plugins"
 
 echo -e "${ANUNCIAR}=== 3. Habilitando Flatpak and repositorio Flathub ===${NC}"
@@ -66,7 +67,7 @@ echo -e "${ANUNCIAR}=== 4. Actualizando el sistema base ===${NC}"
 log_status $? "Actualización del sistema base"
 
 echo -e "${ANUNCIAR}=== 5. Instalando herramientas de compresión y utilidades ===${NC}"
-/usr/bin/dnf -y install xz bzip2 unrar p7zip wl-clipboard xclip lbzip2 lzma arj lzop kitty gvfs-mtp cpio git webp-pixbuf-loader unar file-roller curl cabextract xorg-x11-font-utils fontconfig btop power-profiles-daemon xwayland-satellite
+/usr/bin/dnf -y install xz zip bzip2 unrar p7zip tailscale lbzip2 lzma arj lzop kitty gvfs-mtp cpio git webp-pixbuf-loader unar file-roller curl cabextract xorg-x11-font-utils fontconfig btop power-profiles-daemon xwayland-satellite
 echo -e "${ANUNCIAR}=== Creando carpetas del Home ===${NC}"
 /usr/bin/dnf install -y xdg-user-dirs
 sudo -u "$REAL_USER" xdg-user-dirs-update
@@ -79,14 +80,15 @@ chown $REAL_USER:$REAL_USER "$USER_HOME/.nanorc"
 
 echo -e "${ANUNCIAR}=== 5b. Instalando base ===${NC}"
 # Habilitar repositorios Git
-/usr/bin/dnf copr enable yalter/niri-git -y
-/usr/bin/dnf copr enable lionheartp/Hyprland -y
-echo "priority=1" | sudo tee -a /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:yalter:niri-git.repo
+#/usr/bin/dnf copr enable yalter/niri-git -y
+#/usr/bin/dnf copr enable lionheartp/Hyprland -y
+#echo "priority=1" | sudo tee -a /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:yalter:niri-git.repo
 
-/usr/bin/dnf install niri noctalia-git -y
+#/usr/bin/dnf install niri noctalia-git -y
+/usr/bin/dnf install niri noctalia
 
 # Instalar todo el stack gráfico base
-/usr/bin/dnf install qt6-qtwayland wayland-protocols-devel xdg-desktop-portal-wlr xdg-desktop-portal-gtk pipewire pipewire-pulse wireplumber kitty thunar wl-clipboard fira-code-fonts google-noto-sans-fonts cpupower gamemode -y
+/usr/bin/dnf install qt6-qtwayland tailscale sensors wayland-protocols-devel xdg-desktop-portal-wlr xdg-desktop-portal-gtk pipewire pipewire-pulse wireplumber kitty thunar copyq fira-code-fonts google-noto-sans-fonts cpupower gamemode -y
 
 # File picker para thunar
 echo "org.freedesktop.impl.portal.FileChooser=gtk;" > /usr/share/xdg-desktop-portal/niri-portals.conf
@@ -142,7 +144,11 @@ log_status $? "Configuración Intel GuC/HuC (GUC=3) y Dracut"
 
 echo -e "${ANUNCIAR}=== 10. Agregando kdeconnect al Firewall (Firewalld) ===${NC}"
 if /usr/bin/rpm -q firewalld &>/dev/null; then 
-firewall-cmd --permanent --add-service=kdeconnect 
+firewall-cmd --permanent --add-service=kdeconnect
+firewall-cmd --permanent --add-port=53317/tcp
+firewall-cmd --permanent --add-port=53317/udp
+firewall-cmd --permanent --add-port=53318/tcp
+firewall-cmd --permanent --add-port=53318/udp
 firewall-cmd --reload 
 fi 
 
@@ -163,8 +169,42 @@ log_status $? "Configuración entorno Qt"
 echo -e "${ANUNCIAR}=== 12. Optimizando Tiempos de Arranque Final ===${NC}"
 /usr/bin/systemctl disable NetworkManager-wait-online.service
 /usr/bin/systemctl enable fstrim.timer
-/usr/bin/systemctl enable --now power-profiles-daemon
+/usr/bin/systemctl enable tailscaled
 log_status $? "Optimización de arranque final y fstrim"
+
+# ==============================================================================
+# 13. OPTIMIZACIÓN DEL SISTEMA (Tweaks de rendimiento)
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 13. OPTIMIZANDO SISTEMA ===${NC}"
+# Enmascarar servicios de indexación pesados (Tracker)
+sudo -u "$REAL_USER" systemctl --user mask \
+    tracker-extract-3.service tracker-miner-fs-3.service tracker-writeback-3.service \
+    evolution-addressbook-factory.service evolution-calendar-factory.service \
+    evolution-source-registry.service 2>/dev/null || true
+
+# Deshabilitar servicios del sistema innecesarios
+sudo systemctl disable --now colord.service packagekit.service ModemManager.service switcheroo-control.service 2>/dev/null || true
+
+# Cambiar a power-profiles-daemon (más ligero que tuned)
+/usr/bin/dnf -y swap tuned-ppd power-profiles-daemon 2>/dev/null || true
+systemctl enable --now power-profiles-daemon
+
+# Tweak de prioridad CPU para sesiones de usuario
+sudo mkdir -p /etc/systemd/system/user@.service.d
+cat << 'EOF' | sudo tee /etc/systemd/system/user@.service.d/99-cpu-priority.conf > /dev/null
+[Service]
+Nice=-5
+OOMScoreAdjust=-500
+EOF
+sudo systemctl daemon-reload
+
+# Planificadores de E/S para SSD/NVMe
+cat << 'EOF' | sudo tee /etc/udev/rules.d/60-ioschedulers.rules > /dev/null
+ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="mq-deadline"
+ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="none"
+EOF
+sudo udevadm control --reload-rules
+log_status $? "Sistema optimizado y tweaks aplicados"
 
 echo -e "${ANUNCIAR}=== 13. Limpiando archivos temporales y caché ===${NC}"
 /usr/bin/dnf clean all
