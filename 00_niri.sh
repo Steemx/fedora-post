@@ -84,7 +84,7 @@ echo -e "${ANUNCIAR}=== 4. INSTALANDO BASE MÍNIMA ===${NC}"
     xdg-desktop-portal-gtk xdg-desktop-portal-gnome \
     xwayland-satellite \
     pipewire pipewire-pulse wireplumber \
-    NetworkManager network-manager-applet \
+    NetworkManager \
     bluez \
     gvfs gvfs-mtp gvfs-archive \
     thunar alacritty mousepad \
