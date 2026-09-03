@@ -266,6 +266,34 @@ EOF
 log_status $? "Firewall y entorno configurados"
 
 # ==============================================================================
+# 12b. CONFIGURAR PORTALES FLATPAK (Arreglo selector de archivos)
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 12b. CONFIGURANDO PORTALES FLATPAK ===${NC}"
+
+# Asegurar que el paquete base del portal esté instalado (a veces falta en minimal)
+/usr/bin/dnf install -y xdg-desktop-portal
+
+# Crear el directorio de configuración para el usuario real
+sudo -u "$REAL_USER" mkdir -p "$USER_HOME/.config/xdg-desktop-portal"
+
+# Crear el archivo portals.conf forzando el uso de GTK (compatible con Niri)
+cat << 'EOF' | sudo -u "$REAL_USER" tee "$USER_HOME/.config/xdg-desktop-portal/portals.conf" > /dev/null
+[preferred]
+default=gtk
+org.freedesktop.impl.portal.FileChooser=gtk
+org.freedesktop.impl.portal.Settings=gtk
+EOF
+
+# Asegurar que los permisos sean del usuario real
+chown -R "$REAL_USER":"$REAL_USER" "$USER_HOME/.config/xdg-desktop-portal"
+
+# Habilitar los servicios de usuario para que arranquen con la sesión gráfica
+sudo -u "$REAL_USER" systemctl --user enable xdg-desktop-portal.service
+sudo -u "$REAL_USER" systemctl --user enable xdg-desktop-portal-gtk.service
+
+log_status $? "Portales Flatpak configurados (Selector de archivos arreglado)"
+
+# ==============================================================================
 # 13. OPTIMIZACIÓN DEL SISTEMA (Tweaks de rendimiento)
 # ==============================================================================
 echo -e "${ANUNCIAR}=== 13. OPTIMIZANDO SISTEMA ===${NC}"
