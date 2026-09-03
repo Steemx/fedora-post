@@ -89,7 +89,7 @@ echo -e "${ANUNCIAR}=== 4. INSTALANDO BASE MÍNIMA ===${NC}"
     gvfs gvfs-mtp gvfs-archive \
     thunar alacritty mousepad \
     xdg-user-dirs xdg-user-dirs-gtk openssl \
-    udiskie mako sensors copyq
+    udiskie mako sensors copyq sddm
 
 # Arranque en modo texto (TTY)
 systemctl set-default multi-user.target
@@ -291,6 +291,10 @@ Nice=-5
 OOMScoreAdjust=-500
 EOF
 sudo systemctl daemon-reload
+
+# Forzar el arranque directo en modo sddm
+systemctl set-default graphical.target
+systemctl enable sddm.service 2>/dev/null || true
 
 # Planificadores de E/S para SSD/NVMe
 cat << 'EOF' | sudo tee /etc/udev/rules.d/60-ioschedulers.rules > /dev/null
