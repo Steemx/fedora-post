@@ -2,7 +2,7 @@
 # ==============================================================================
 # SCRIPT: NIRI + NOCTALIA - FEDORA 44 (MODO TTY PURISTA)
 # Optimizado para: Notebook HP Celeron N4020 / 8GB RAM / 256GB SSD
-# Filosofía: Minimalismo extremo. Sin greeter, TTY, Thunar + Alacritty + Mousepad.
+# Filosofía: Minimalismo extremo. Sddm, Thunar + Alacritty + Mousepad.
 # ==============================================================================
 set -e
 
@@ -354,8 +354,8 @@ log_status $? "Boot verbose configurado"
 echo -e "${VERDE}========================================${NC}"
 echo -e "${VERDE}¡INSTALACIÓN COMPLETADA (MODO TTY)!${NC}"
 echo -e "${VERDE}========================================${NC}"
-echo -e "${VERDE}Al reiniciar, verás la terminal de login (TTY).${NC}"
-echo -e "${VERDE}Inicia sesión y escribe 'niri' o 'start'.${NC}"
+echo -e "${VERDE}Al reiniciar, verás sddm.${NC}"
+echo -e "${VERDE}Inicia sesión y listo.${NC}"
 echo -e "${VERDE}========================================${NC}"
 echo ""
 read -p "Presiona ENTER para reiniciar ahora (o Ctrl+C para cancelar)..."
