@@ -267,9 +267,23 @@ EOF
 log_status $? "Firewall y entorno configurados"
 
 # ==============================================================================
-# 13. TWEAKS DE RENDIMIENTO Y APAGADO INSTANTÁNEO
+# 13. OPTIMIZACIÓN DEL SISTEMA (Tweaks de rendimiento)
 # ==============================================================================
-echo -e "${ANUNCIAR}=== 13. APLICANDO TWEAKS DE RENDIMIENTO ===${NC}"
+echo -e "${ANUNCIAR}=== 13. OPTIMIZANDO SISTEMA ===${NC}"
+# Enmascarar servicios de indexación pesados (Tracker)
+sudo -u "$REAL_USER" systemctl --user mask \
+    tracker-extract-3.service tracker-miner-fs-3.service tracker-writeback-3.service \
+    evolution-addressbook-factory.service evolution-calendar-factory.service \
+    evolution-source-registry.service 2>/dev/null || true
+
+# Deshabilitar servicios del sistema innecesarios
+sudo systemctl disable --now colord.service packagekit.service ModemManager.service switcheroo-control.service 2>/dev/null || true
+
+# Cambiar a power-profiles-daemon (más ligero que tuned)
+/usr/bin/dnf -y swap tuned-ppd power-profiles-daemon 2>/dev/null || true
+systemctl enable --now power-profiles-daemon
+
+# Tweak de prioridad CPU para sesiones de usuario
 sudo mkdir -p /etc/systemd/system/user@.service.d
 cat << 'EOF' | sudo tee /etc/systemd/system/user@.service.d/99-cpu-priority.conf > /dev/null
 [Service]
@@ -277,22 +291,14 @@ Nice=-5
 OOMScoreAdjust=-500
 EOF
 sudo systemctl daemon-reload
-sudo systemctl disable --now ModemManager.service avahi-daemon.service switcheroo-control.service packagekit.service colord.service 2>/dev/null || true
 
+# Planificadores de E/S para SSD/NVMe
 cat << 'EOF' | sudo tee /etc/udev/rules.d/60-ioschedulers.rules > /dev/null
 ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="mq-deadline"
 ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/scheduler}="none"
 EOF
 sudo udevadm control --reload-rules
-
-# Apagar instantáneo (blindado)
-sudo mkdir -p /etc/systemd
-if [ ! -f /etc/systemd/logind.conf ]; then
-    echo -e "[Login]\nInhibitDelayMaxSec=0" | sudo tee /etc/systemd/logind.conf > /dev/null
-else
-    sudo sed -i 's/^#*InhibitDelayMaxSec=.*/InhibitDelayMaxSec=0/' /etc/systemd/logind.conf
-fi
-log_status $? "Tweaks aplicados"
+log_status $? "Sistema optimizado y tweaks aplicados"
 
 # ==============================================================================
 # 14. CONFIGURACIÓN DE NIRI
