@@ -121,7 +121,7 @@ echo -e "${ANUNCIAR}=== 6. INSTALANDO HERRAMIENTAS ===${NC}"
     xz bzip2 unrar p7zip zip wl-clipboard lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
     fontconfig btop nano tailscale brightnessctl pamixer \
-    grim slurp jq thunar-archive-plugin thunar-media-tags-plugin
+    grim slurp jq thunar-archive-plugin thunar-media-tags-plugin qt5ct qt6ct kavantum
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
@@ -396,6 +396,18 @@ echo "=== Hardware Post-Install ===" >> "$LOG_FILE"
 /usr/bin/dmesg | grep -iE "guc|huc" >> "$LOG_FILE" 2>&1 || true
 /usr/bin/zramctl >> "$LOG_FILE" 2>&1 || true
 log_status $? "Limpieza completada"
+
+# ==============================================================================
+# 15a. CONFIGURAR FLATPAK GLOBAL (Modo oscuro para todas las apps)
+# ==============================================================================
+echo -e "${ANUNCIAR}=== 17. CONFIGURANDO FLATPAK GLOBAL ===${NC}"
+
+# Forzar tema oscuro en todos los Flatpaks (GTK + Qt)
+sudo -u "$REAL_USER" flatpak override --user \
+  --env=GTK_THEME=Adwaita-dark \
+  --env=QT_QPA_PLATFORMTHEME=qt5ct
+
+log_status $? "Flatpak configurado con modo oscuro global"
 
 # ==============================================================================
 # 16. CONFIGURAR BOOT VERBOSO (Sin quiet ni splash)
