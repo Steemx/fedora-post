@@ -91,7 +91,7 @@ echo -e "${ANUNCIAR}=== 4. INSTALANDO BASE MÍNIMA ===${NC}"
     nautilus kitty mousepad \
     xdg-user-dirs xdg-user-dirs-gtk openssl \
     udiskie sensors copyq sddm scrcpy distrobox \
-    podman    
+    podman blueman-nautilus file-roller-nautilus kde-connect-nautilus nautilus-extensions sushi
 
 # Arranque en modo texto (TTY)
 systemctl enable --now NetworkManager.service
