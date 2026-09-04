@@ -2,7 +2,7 @@
 # ==============================================================================
 # SCRIPT: NIRI + NOCTALIA - FEDORA 44 (MODO TTY PURISTA)
 # Optimizado para: Notebook HP Celeron N4020 / 8GB RAM / 256GB SSD
-# Filosofía: Minimalismo extremo. Sddm, Thunar + Alacritty + Mousepad.
+# Filosofía: Minimalismo extremo. Sddm, Thunar + Kitty + Mousepad.
 # ==============================================================================
 set -e
 
@@ -63,6 +63,7 @@ echo -e "${ANUNCIAR}=== 2. INSTALANDO REPOSITORIOS ===${NC}"
 /usr/bin/dnf -y install dnf-plugins-core flatpak
 /usr/bin/flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo | tee /etc/yum.repos.d/tailscale.repo > /dev/null
+/usr/bin/dnf copr enable zeno/scrcpy
 log_status $? "Repositorios instalados"
 
 # ==============================================================================
@@ -87,9 +88,10 @@ echo -e "${ANUNCIAR}=== 4. INSTALANDO BASE MÍNIMA ===${NC}"
     NetworkManager \
     bluez \
     gvfs gvfs-mtp gvfs-archive \
-    thunar alacritty mousepad \
+    nautilus kitty mousepad \
     xdg-user-dirs xdg-user-dirs-gtk openssl \
-    udiskie mako sensors copyq sddm
+    udiskie sensors copyq sddm scrcpy distrobox \
+    podman    
 
 # Arranque en modo texto (TTY)
 systemctl enable --now NetworkManager.service
@@ -99,14 +101,14 @@ log_status $? "Base mínima instalada (Arranque en TTY)"
 # ==============================================================================
 # 5. LIMPIEZA DE BLOATWARE
 # ==============================================================================
-echo -e "${ANUNCIAR}=== 5. ELIMINANDO BLOATWARE ===${NC}"
-/usr/bin/dnf remove -y \
-    gnome-software gnome-software-rpm-ostree \
-    packagekit packagekit-gtk3-module PackageKit-command-not-found \
-    yelp gnome-contacts simple-scan gnome-tour \
-    gnome-shell gnome-session gnome-control-center gnome-settings-daemon \
-    gdm mutter gnome-terminal rxvt-unicode nautilus ptyxis \
-    gnome-text-editor gnome-calculator leafpad gnome-keyring 2>/dev/null || true
+#echo -e "${ANUNCIAR}=== 5. ELIMINANDO BLOATWARE ===${NC}"
+#/usr/bin/dnf remove -y \
+ #   gnome-software gnome-software-rpm-ostree \
+  #  packagekit packagekit-gtk3-module PackageKit-command-not-found \
+   # yelp gnome-contacts simple-scan gnome-tour \
+    #gnome-shell gnome-session gnome-control-center gnome-settings-daemon \
+    #gdm mutter gnome-terminal rxvt-unicode nautilus ptyxis \
+    #gnome-text-editor gnome-calculator leafpad gnome-keyring 2>/dev/null || true
 
 
 
@@ -118,10 +120,10 @@ log_status $? "Limpieza completada"
 # ==============================================================================
 echo -e "${ANUNCIAR}=== 6. INSTALANDO HERRAMIENTAS ===${NC}"
 /usr/bin/dnf -y install \
-    xz bzip2 unrar p7zip zip wl-clipboard lbzip2 lzma arj lzop \
+    xz bzip2 unrar p7zip zip wl-clipboard copyq lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
     fontconfig btop nano tailscale brightnessctl pamixer \
-    grim slurp jq thunar-archive-plugin thunar-media-tags-plugin qt5ct qt6ct kavantum
+    grim slurp jq qt5ct qt6ct kavantum scrcpy fzf
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
@@ -377,7 +379,6 @@ cat << 'AUTOSTART' >> "$USER_HOME/.config/niri/config.kdl"
 
 // Autostart personalizado
 spawn-at-startup "noctalia"
-spawn-at-startup "mako"
 spawn-at-startup "udiskie"
 spawn-at-startup "xwayland-satellite"
 spawn-at-startup "copyq"
@@ -420,7 +421,7 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 log_status $? "Boot verbose configurado"
 
 echo -e "${VERDE}========================================${NC}"
-echo -e "${VERDE}¡INSTALACIÓN COMPLETADA (MODO TTY)!${NC}"
+echo -e "${VERDE}¡INSTALACIÓN COMPLETADA (MODO SDDM)!${NC}"
 echo -e "${VERDE}========================================${NC}"
 echo -e "${VERDE}Al reiniciar, verás sddm.${NC}"
 echo -e "${VERDE}Inicia sesión y listo.${NC}"
