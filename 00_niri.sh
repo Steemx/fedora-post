@@ -123,11 +123,17 @@ echo -e "${ANUNCIAR}=== 6. INSTALANDO HERRAMIENTAS ===${NC}"
     xz bzip2 unrar p7zip zip wl-clipboard copyq lbzip2 lzma arj lzop \
     cpio git webp-pixbuf-loader unar file-roller curl cabextract \
     fontconfig btop nano tailscale brightnessctl pamixer \
-    grim slurp jq qt5ct qt6ct kavantum scrcpy fzf
+    grim slurp jq qt5ct qt6ct kavantum scrcpy fzf yazi loupe
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
 log_status $? "Herramientas instaladas"
+
+xdg-mime default org.gnome.Loupe.desktop image/jpeg
+xdg-mime default org.gnome.Loupe.desktop image/png
+xdg-mime default org.gnome.Loupe.desktop image/webp
+xdg-mime default org.gnome.Loupe.desktop image/gif
+xdg-mime default org.gnome.Loupe.desktop image/avif
 
 # ==============================================================================
 # 6a. INSTALAR KDE-CONNECT (Después de limpieza para evitar conflictos)
