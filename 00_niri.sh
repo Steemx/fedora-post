@@ -88,10 +88,14 @@ echo -e "${ANUNCIAR}=== 4. INSTALANDO BASE MÍNIMA ===${NC}"
     NetworkManager \
     bluez \
     gvfs gvfs-mtp gvfs-archive \
-    nautilus kitty mousepad \
+    kitty mousepad \
     xdg-user-dirs xdg-user-dirs-gtk openssl \
     udiskie sensors copyq sddm scrcpy distrobox \
-    podman blueman-nautilus file-roller-nautilus kde-connect-nautilus nautilus-extensions sushi
+    podman nemo blueman-nemo nemo-emblems nemo-extensions nemo-fileroller nemo-pastebin nemo-preview
+    
+    # nautilus blueman-nautilus file-roller-nautilus kde-connect-nautilus nautilus-extensions sushi
+
+gsettings set org.cinnamon.desktop.default-applications.terminal exec kitty
 
 # Arranque en modo texto (TTY)
 systemctl enable --now NetworkManager.service
