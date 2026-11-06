@@ -132,7 +132,7 @@ echo -e "${ANUNCIAR}6. Instalando herramientas básicas...${NC}"
 /usr/bin/dnf -y install \
   xz bzip2 unrar p7zip wl-clipboard lbzip2 lzma arj lzop cpio git \
   webp-pixbuf-loader unar curl cabextract fontconfig btop nano tailscale \
-  lm_sensors ripgrep fdfind fastfetch kde-connect bluez fuse fuse-libs
+  lm_sensors ripgrep fastfetch kde-connect bluez fuse fuse-libs
 sudo -u "$REAL_USER" xdg-user-dirs-update
 echo "set linenumbers" >> "$USER_HOME/.nanorc"
 chown "$REAL_USER":"$REAL_USER" "$USER_HOME/.nanorc"
